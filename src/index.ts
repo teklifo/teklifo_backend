@@ -18,6 +18,7 @@ const main = async () => {
     password: DATA_BASE_PASSWORD,
     database: DATA_BASE_NAME,
     entities: [User],
+    synchronize: true,
   });
 
   try {
