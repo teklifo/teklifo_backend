@@ -10,6 +10,8 @@ if (fs.existsSync(".env")) {
 export const ENVIRONMENT = process.env.NODE_ENV;
 const prod = ENVIRONMENT === "production";
 
-export const MONGODB_URI = prod
-  ? process.env["MONGODB_URI"]
-  : process.env["MONGODB_URI_LOCAL"];
+export const DATA_BASE_HOST = process.env["DATA_BASE_HOST"] ?? "localhost";
+export const DATA_BASE_PORT = parseInt(process.env["DATA_BASE_PORT"] ?? "5432");
+export const DATA_BASE_USERNAME = process.env["DATA_BASE_USERNAME"] ?? "";
+export const DATA_BASE_PASSWORD = process.env["DATA_BASE_PASSWORD"] ?? "";
+export const DATA_BASE_NAME = process.env["DATA_BASE_NAME"] ?? "";
