@@ -1,5 +1,6 @@
 import { DataSource } from "typeorm";
 import { User } from "./entities/User";
+import { Item } from "./entities/Item";
 import logger from "./utils/logger";
 import {
   DATA_BASE_HOST,
@@ -17,7 +18,7 @@ const main = async () => {
     username: DATA_BASE_USERNAME,
     password: DATA_BASE_PASSWORD,
     database: DATA_BASE_NAME,
-    entities: [User],
+    entities: [User, Item],
     synchronize: true,
   });
 

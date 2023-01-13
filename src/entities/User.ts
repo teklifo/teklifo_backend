@@ -6,7 +6,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
+  OneToMany,
 } from "typeorm";
+import { Item } from "./Item";
 
 export enum CompanyType {
   physical = "physical",
@@ -19,31 +21,24 @@ export class User extends BaseEntity {
   id: number;
 
   @Index()
-  @Column({
-    nullable: false,
-  })
+  @Column()
   name: string;
 
   @Column({
-    nullable: false,
     unique: true,
   })
   email: string;
 
-  @Column({
-    nullable: false,
-  })
+  @Column()
   password: string;
 
   @Column({
-    nullable: false,
     type: "enum",
     enum: CompanyType,
   })
   type: string;
 
   @Column({
-    nullable: false,
     default: false,
   })
   is_active: boolean;
@@ -71,7 +66,7 @@ export class User extends BaseEntity {
   reset_password_token_expires: Date;
 
   @Column({
-    nullable: true,
+    default: "",
   })
   avatar_url: string;
 
@@ -80,4 +75,7 @@ export class User extends BaseEntity {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @OneToMany(() => Item, (item) => item.user)
+  items: Item[];
 }
