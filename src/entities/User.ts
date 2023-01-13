@@ -51,6 +51,7 @@ export class User extends BaseEntity {
 
   @Column({
     nullable: true,
+    type: "timestamptz",
   })
   activation_token_expires: Date;
 

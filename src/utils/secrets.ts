@@ -9,6 +9,7 @@ if (fs.existsSync(".env")) {
 
 export const ENVIRONMENT = process.env.NODE_ENV;
 
+export const PORT = process.env["PORT"] ?? "5000";
 export const DATA_BASE_HOST = process.env["DATA_BASE_HOST"] ?? "localhost";
 export const DATA_BASE_PORT = parseInt(process.env["DATA_BASE_PORT"] ?? "5432");
 export const DATA_BASE_USERNAME = process.env["DATA_BASE_USERNAME"] ?? "";
