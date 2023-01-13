@@ -1,6 +1,8 @@
 import express from 'express';
 import { DataSource } from 'typeorm';
 import passport from 'passport';
+import './config/passport';
+import { userRouter } from './routes/api/users';
 import { User } from './entities/User';
 import { Company } from './entities/Company';
 import { Item } from './entities/Item';
@@ -34,6 +36,8 @@ const main = async () => {
 
     app.use(express.json());
     app.use(passport.initialize());
+
+    app.use('/api/users', userRouter);
 
     app.listen(PORT, () => {
       logger.info(`Server started on port ${PORT}`);

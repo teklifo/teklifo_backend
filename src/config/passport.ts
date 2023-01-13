@@ -1,29 +1,29 @@
-import passport from "passport";
-import passportLocal from "passport-local";
-import bcrypt from "bcrypt";
-import randomstring from "randomstring";
-import { User } from "../entities/User";
+import passport from 'passport';
+import passportLocal from 'passport-local';
+import bcrypt from 'bcrypt';
+import randomstring from 'randomstring';
+import { User } from '../entities/User';
 
 const LocalStrategy = passportLocal.Strategy;
 
 passport.use(
-  "local-signup",
+  'local-signup',
   new LocalStrategy(
     {
-      usernameField: "email",
-      passwordField: "password",
+      usernameField: 'email',
+      passwordField: 'password',
       passReqToCallback: true,
     },
     async (req, email, password, done) => {
       try {
-        const { displayName } = req.body;
+        const { name } = req.body;
 
         // Check if user already exists
         let user = await User.findOneBy({
           email: email.toLowerCase(),
         });
         if (user && user.is_active) {
-          return done(null, false, { message: "email_is_taken" });
+          return done(null, false, { message: 'email_is_taken' });
         }
 
         // Encrypt password
@@ -33,21 +33,21 @@ passport.use(
         // Generate unique activation token
         const activationToken = randomstring.generate({
           length: 5,
-          charset: "numeric",
+          charset: 'numeric',
         });
-        const minutes = 10;
+        const minutes = 30;
         const activationTokenExpires = new Date(
-          new Date().getTime() + minutes * 60000
+          new Date().getTime() + minutes * 60000,
         );
 
         if (user) {
-          user.name = displayName;
+          user.name = name;
           user.password = hashedPassword;
           user.activation_token = activationToken;
           user.activation_token_expires = activationTokenExpires;
         } else {
           user = User.create({
-            name: req.body.displayName,
+            name: req.body.name,
             email: email.toLowerCase(),
             password: hashedPassword,
             activation_token: activationToken,
@@ -58,10 +58,14 @@ passport.use(
         // Save user
         await user.save();
 
-        return done(null, user);
+        return done(null, {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        });
       } catch (error) {
         return done(error);
       }
-    }
-  )
+    },
+  ),
 );
