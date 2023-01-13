@@ -6,16 +6,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Index,
-  OneToMany,
-} from "typeorm";
-import { Item } from "./Item";
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
+import { Company } from './Company';
 
-export enum CompanyType {
-  physical = "physical",
-  entity = "entity",
-}
-
-@Entity("users")
+@Entity('users')
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
@@ -33,12 +29,6 @@ export class User extends BaseEntity {
   password: string;
 
   @Column({
-    type: "enum",
-    enum: CompanyType,
-  })
-  type: string;
-
-  @Column({
     default: false,
   })
   is_active: boolean;
@@ -51,7 +41,7 @@ export class User extends BaseEntity {
 
   @Column({
     nullable: true,
-    type: "timestamptz",
+    type: 'timestamptz',
   })
   activation_token_expires: Date;
 
@@ -67,7 +57,7 @@ export class User extends BaseEntity {
   reset_password_token_expires: Date;
 
   @Column({
-    default: "",
+    default: '',
   })
   avatar_url: string;
 
@@ -77,6 +67,17 @@ export class User extends BaseEntity {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @OneToMany(() => Item, (item) => item.user)
-  items: Item[];
+  @ManyToMany(() => User)
+  @JoinTable({
+    name: 'users_companies',
+    joinColumn: {
+      name: 'user',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'company',
+      referencedColumnName: 'id',
+    },
+  })
+  companies: Company[];
 }
