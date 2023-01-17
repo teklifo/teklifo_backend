@@ -62,7 +62,7 @@ passport.use(
         // Send verification email
         await emailSender({
           emailType: "email_verification",
-          subject: "Email Verification",
+          subject: req.t("subjectEmailVerification"),
           receivers: email,
           context: {
             activationToken,

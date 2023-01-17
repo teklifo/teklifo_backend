@@ -13,11 +13,17 @@ type PassportValidationError = "email_is_taken" | undefined;
 router.post(
   "/",
   [
-    check("name", "Name is required").notEmpty(),
-    check("email", "Please include a valid email").isEmail(),
-    check("password", "Password must be at least 6 characters long").isLength({
-      min: 6,
-    }),
+    check("name")
+      .notEmpty()
+      .withMessage((_, { req }) => req.t("nameIsRequired")),
+    check("email")
+      .isEmail()
+      .withMessage((_, { req }) => req.t("invalidEmail")),
+    check("password")
+      .isLength({
+        min: 6,
+      })
+      .withMessage((_, { req }) => req.t("invalidPassword")),
   ],
   async (req: Request, res: Response, next: NextFunction) => {
     // Validation
@@ -40,7 +46,7 @@ router.post(
             errors: [
               {
                 param: "email",
-                msg: "This email is already taken",
+                msg: req.t("emailIsTaken"),
               },
             ],
           });

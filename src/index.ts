@@ -1,6 +1,9 @@
 import express from "express";
 import { DataSource } from "typeorm";
 import passport from "passport";
+import i18next from "i18next";
+import Backend from "i18next-fs-backend";
+import middleware from "i18next-http-middleware";
 import "./config/passport";
 import { userRouter } from "./routes/api/users";
 import { User } from "./entities/User";
@@ -15,6 +18,16 @@ import {
   DATA_BASE_PASSWORD,
   DATA_BASE_NAME,
 } from "./utils/secrets";
+
+i18next
+  .use(Backend)
+  .use(middleware.LanguageDetector)
+  .init({
+    fallbackLng: "az",
+    backend: {
+      loadPath: "./src/locales/{{lng}}/translation.json",
+    },
+  });
 
 const app = express();
 
@@ -35,6 +48,7 @@ const main = async () => {
     logger.info("Connected to database...");
 
     app.use(express.json());
+    app.use(middleware.handle(i18next));
     app.use(passport.initialize());
 
     app.use("/api/users", userRouter);

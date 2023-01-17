@@ -1,0 +1,7 @@
+{
+  "nameIsRequired": "Zəhmət olmasa, adını göstərin",
+  "invalidEmail": "Zəhmət olmasa, düzgün Email göstərin",
+  "invalidPassword": "Parol ən azı 6 simvoldan ibarət olmalıdır",
+  "emailIsTaken": "Bu Email ilə istifadəçi artıq var",
+  "subjectEmailVerification": "Tekliff.az-da qeydiyyatı təsdiqləyin"
+}
