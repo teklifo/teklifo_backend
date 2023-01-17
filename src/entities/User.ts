@@ -8,10 +8,10 @@ import {
   Index,
   ManyToMany,
   JoinTable,
-} from 'typeorm';
-import { Company } from './Company';
+} from "typeorm";
+import { Company } from "./Company";
 
-@Entity('users')
+@Entity("users")
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
@@ -41,7 +41,7 @@ export class User extends BaseEntity {
 
   @Column({
     nullable: true,
-    type: 'timestamptz',
+    type: "timestamptz",
   })
   activation_token_expires: Date;
 
@@ -57,7 +57,7 @@ export class User extends BaseEntity {
   reset_password_token_expires: Date;
 
   @Column({
-    default: '',
+    default: "",
   })
   avatar_url: string;
 
@@ -69,14 +69,14 @@ export class User extends BaseEntity {
 
   @ManyToMany(() => User)
   @JoinTable({
-    name: 'users_companies',
+    name: "users_companies",
     joinColumn: {
-      name: 'user',
-      referencedColumnName: 'id',
+      name: "user",
+      referencedColumnName: "id",
     },
     inverseJoinColumn: {
-      name: 'company',
-      referencedColumnName: 'id',
+      name: "company",
+      referencedColumnName: "id",
     },
   })
   companies: Company[];

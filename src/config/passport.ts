@@ -1,17 +1,18 @@
-import passport from 'passport';
-import passportLocal from 'passport-local';
-import bcrypt from 'bcrypt';
-import randomstring from 'randomstring';
-import { User } from '../entities/User';
+import passport from "passport";
+import passportLocal from "passport-local";
+import bcrypt from "bcrypt";
+import randomstring from "randomstring";
+import emailSender from "./nodemailer/emailSender";
+import { User } from "../entities/User";
 
 const LocalStrategy = passportLocal.Strategy;
 
 passport.use(
-  'local-signup',
+  "local-signup",
   new LocalStrategy(
     {
-      usernameField: 'email',
-      passwordField: 'password',
+      usernameField: "email",
+      passwordField: "password",
       passReqToCallback: true,
     },
     async (req, email, password, done) => {
@@ -23,7 +24,7 @@ passport.use(
           email: email.toLowerCase(),
         });
         if (user && user.is_active) {
-          return done(null, false, { message: 'email_is_taken' });
+          return done(null, false, { message: "email_is_taken" });
         }
 
         // Encrypt password
@@ -33,11 +34,11 @@ passport.use(
         // Generate unique activation token
         const activationToken = randomstring.generate({
           length: 5,
-          charset: 'numeric',
+          charset: "numeric",
         });
         const minutes = 30;
         const activationTokenExpires = new Date(
-          new Date().getTime() + minutes * 60000,
+          new Date().getTime() + minutes * 60000
         );
 
         if (user) {
@@ -58,6 +59,16 @@ passport.use(
         // Save user
         await user.save();
 
+        // Send verification email
+        await emailSender({
+          emailType: "email_verification",
+          subject: "Email Verification",
+          receivers: email,
+          context: {
+            activationToken,
+          },
+        });
+
         return done(null, {
           id: user.id,
           name: user.name,
@@ -66,6 +77,6 @@ passport.use(
       } catch (error) {
         return done(error);
       }
-    },
-  ),
+    }
+  )
 );

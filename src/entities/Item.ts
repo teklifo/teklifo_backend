@@ -8,10 +8,10 @@ import {
   Index,
   ManyToOne,
   JoinColumn,
-} from 'typeorm';
-import { Company } from './Company';
+} from "typeorm";
+import { Company } from "./Company";
 
-@Entity('items')
+@Entity("items")
 export class Item extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
@@ -48,7 +48,7 @@ export class Item extends BaseEntity {
   purchase_price: number;
 
   @Column({
-    default: '',
+    default: "",
   })
   picture_url: string;
 
@@ -60,7 +60,7 @@ export class Item extends BaseEntity {
 
   @ManyToOne(() => Company, (company) => company.items)
   @JoinColumn({
-    name: 'company_id',
+    name: "company_id",
   })
   company: Company;
 }

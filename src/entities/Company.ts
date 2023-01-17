@@ -8,16 +8,16 @@ import {
   Index,
   OneToMany,
   ManyToMany,
-} from 'typeorm';
-import { Item } from './Item';
-import { User } from './User';
+} from "typeorm";
+import { Item } from "./Item";
+import { User } from "./User";
 
 export enum CompanyType {
-  physical = 'physical',
-  entity = 'entity',
+  physical = "physical",
+  entity = "entity",
 }
 
-@Entity('companies')
+@Entity("companies")
 export class Company extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
@@ -33,23 +33,23 @@ export class Company extends BaseEntity {
   tin: string;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: CompanyType,
   })
   type: string;
 
   @Column({
-    default: '',
+    default: "",
   })
   logo_url: string;
 
   @Column({
-    default: '',
+    default: "",
   })
   description: string;
 
   @Column({
-    type: 'simple-json',
+    type: "simple-json",
   })
   contacts: {
     phone: string[];
@@ -59,7 +59,7 @@ export class Company extends BaseEntity {
   };
 
   @Column({
-    type: 'simple-json',
+    type: "simple-json",
   })
   socials: {
     facebook: string;
