@@ -20,3 +20,5 @@ export const DATA_BASE_NAME = process.env["DATA_BASE_NAME"] ?? "";
 export const MAILGUN_API_KEY = process.env["MAILGUN_API_KEY"] ?? "";
 export const MAILGUN_DOMAIN = process.env["MAILGUN_DOMAIN"] ?? "";
 export const MAILGUN_HOST = process.env["MAILGUN_HOST"] ?? "";
+
+export const JWT_SECRET = process.env["JWT_SECRET"] ?? "";

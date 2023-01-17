@@ -39,7 +39,7 @@ router.post(
       (err, user, validationError: PassportValidationError) => {
         if (err) {
           logger.error(err.message);
-          return res.status(500).send("Server error...");
+          return res.status(500).send(req.t("serverError"));
         }
         if (validationError === "email_is_taken") {
           return res.status(400).json({

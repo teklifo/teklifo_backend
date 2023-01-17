@@ -1,11 +1,15 @@
 import passport from "passport";
 import passportLocal from "passport-local";
+import passportJwt from "passport-jwt";
 import bcrypt from "bcrypt";
 import randomstring from "randomstring";
 import emailSender from "./nodemailer/emailSender";
 import { User } from "../entities/User";
+import { JWT_SECRET } from "../utils/secrets";
 
 const LocalStrategy = passportLocal.Strategy;
+const JwtStrategy = passportJwt.Strategy;
+const extractJwt = passportJwt.ExtractJwt;
 
 passport.use(
   "local-signup",
@@ -32,10 +36,7 @@ passport.use(
         const hashedPassword = await bcrypt.hash(password, salt);
 
         // Generate unique activation token
-        const activationToken = randomstring.generate({
-          length: 5,
-          charset: "numeric",
-        });
+        const activationToken = randomstring.generate();
         const minutes = 30;
         const activationTokenExpires = new Date(
           new Date().getTime() + minutes * 60000
@@ -74,6 +75,38 @@ passport.use(
           name: user.name,
           email: user.email,
         });
+      } catch (error) {
+        return done(error);
+      }
+    }
+  )
+);
+
+passport.use(
+  "jwt",
+  new JwtStrategy(
+    {
+      jwtFromRequest: extractJwt.fromAuthHeaderWithScheme("JWT"),
+      secretOrKey: JWT_SECRET,
+    },
+    async (jwtPayload, done) => {
+      try {
+        const user = await User.findOne({
+          where: { id: jwtPayload.user.id },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar_url: true,
+            created_at: true,
+            updated_at: true,
+            companies: true,
+          },
+        });
+        if (!user) {
+          return done(null, false, { message: "authorization_denied" });
+        }
+        return done(null, user);
       } catch (error) {
         return done(error);
       }

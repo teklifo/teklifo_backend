@@ -34,10 +34,11 @@ export class User extends BaseEntity {
   is_active: boolean;
 
   @Column({
+    type: "text",
     nullable: true,
     unique: true,
   })
-  activation_token: string;
+  activation_token: string | null;
 
   @Column({
     nullable: true,
@@ -46,10 +47,11 @@ export class User extends BaseEntity {
   activation_token_expires: Date;
 
   @Column({
+    type: "text",
     nullable: true,
     unique: true,
   })
-  reset_password_token: string;
+  reset_password_token: string | null;
 
   @Column({
     nullable: true,

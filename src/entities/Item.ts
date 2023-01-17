@@ -28,7 +28,7 @@ export class Item extends BaseEntity {
 
   @Index()
   @Column({
-    nullable: true,
+    default: "",
   })
   number: string;
 

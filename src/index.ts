@@ -6,6 +6,7 @@ import Backend from "i18next-fs-backend";
 import middleware from "i18next-http-middleware";
 import "./config/passport";
 import { userRouter } from "./routes/api/users";
+import { authRouter } from "./routes/api/auth";
 import { User } from "./entities/User";
 import { Company } from "./entities/Company";
 import { Item } from "./entities/Item";
@@ -52,6 +53,7 @@ const main = async () => {
     app.use(passport.initialize());
 
     app.use("/api/users", userRouter);
+    app.use("/api/auth", authRouter);
 
     app.listen(PORT, () => {
       logger.info(`Server started on port ${PORT}`);

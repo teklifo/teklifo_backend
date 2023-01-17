@@ -3,5 +3,7 @@
   "invalidEmail": "Zəhmət olmasa, düzgün Email göstərin",
   "invalidPassword": "Parol ən azı 6 simvoldan ibarət olmalıdır",
   "emailIsTaken": "Bu Email ilə istifadəçi artıq var",
-  "subjectEmailVerification": "Tekliff.az-da qeydiyyatı təsdiqləyin"
+  "subjectEmailVerification": "Tekliff.az-da qeydiyyatı təsdiqləyin",
+  "invalidActivationToken": "Yanlış aktivasiya tokeni",
+  "serverError": "Server xətası..."
 }
