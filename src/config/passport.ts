@@ -97,8 +97,6 @@ passport.use(
           email: email.toLowerCase(),
         });
 
-        console.log(user);
-
         if (!user) {
           return done(null, false, {
             message: "invalid_credentials",
