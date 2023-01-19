@@ -8,5 +8,11 @@
   "serverError": "Server xətası...",
   "passwordRequired": "Zəhmət olmasa, parolu göstərin",
   "emailNotVerified": "Email təsdiqlənməyib",
-  "invalidCredentials": "Yanlış Email və ya parol"
+  "invalidCredentials": "Yanlış Email və ya parol",
+  "resetPasswordTokenIsRequired": "Zəhmət olmasa, parolu bərpa etmək üçün tokeni göstərin",
+  "noUserWithSuchEmail": "Göstərilən Email üzrə istifadəçi tapılmadı",
+  "subjectResetPassword": "Parolun bərpa etməsi",
+  "resetPasswordEmailSent": "Parolun bərpa etmək üçün token uğurla yaradılıb",
+  "invalidResetPasswordToken": "Parolu bərpa etmək üçün token yanlışdır",
+  "resetPasswordTokenIsValid": "Parolu bərpa etmək üçün token düzgündür"
 }

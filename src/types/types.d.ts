@@ -1,6 +1,6 @@
 import { ValidationError } from "express-validator";
 
-export type EmailType = "email_verification";
+export type EmailType = "email_verification" | "reset_password";
 
 export interface EmailContextType {
   [key: string]: string;

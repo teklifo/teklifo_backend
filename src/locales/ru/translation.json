@@ -8,5 +8,11 @@
   "serverError": "Ошибка сервера...",
   "passwordRequired": "Пожалуйста, укажите пароль",
   "emailNotVerified": "Email не подтвержден",
-  "invalidCredentials": "Неправильный Email или пароль"
+  "invalidCredentials": "Неправильный Email или пароль",
+  "resetPasswordTokenIsRequired": "Пожалуйста, укажите токен восстановления пароля",
+  "noUserWithSuchEmail": "Не найден пользователь с указанным Email",
+  "subjectResetPassword": "Восстановление пароля",
+  "resetPasswordEmailSent": "Токен для восстановления пароля успешно сформирован",
+  "invalidResetPasswordToken": "Неверный токен восстановления пароля",
+  "resetPasswordTokenIsValid": "Токен восстановления пароля корректен"
 }
