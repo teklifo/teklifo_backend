@@ -92,7 +92,7 @@ passport.use(
     },
     async (req, email, password, done) => {
       try {
-        // Check if user exist
+        // Check if user exists
         const user = await User.findOneBy({
           email: email.toLowerCase(),
         });
