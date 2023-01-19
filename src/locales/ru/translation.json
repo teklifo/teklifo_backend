@@ -5,5 +5,8 @@
   "emailIsTaken": "Пользователь с этим Email уже существует",
   "subjectEmailVerification": "Подтвердите регистрацию на Tekliff.az",
   "invalidActivationToken": "Неверный токен активации",
-  "serverError": "Ошибка сервера..."
+  "serverError": "Ошибка сервера...",
+  "passwordRequired": "Пожалуйста, укажите пароль",
+  "emailNotVerified": "Email не подтвержден",
+  "invalidCredentials": "Неправильный Email или пароль"
 }

@@ -83,6 +83,52 @@ passport.use(
 );
 
 passport.use(
+  "local-signin",
+  new LocalStrategy(
+    {
+      usernameField: "email",
+      passwordField: "password",
+      passReqToCallback: true,
+    },
+    async (req, email, password, done) => {
+      try {
+        // Check if user exist
+        const user = await User.findOneBy({
+          email: email.toLowerCase(),
+        });
+
+        console.log(user);
+
+        if (!user) {
+          return done(null, false, {
+            message: "invalid_credentials",
+          });
+        }
+
+        // Check password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+          return done(null, false, {
+            message: "invalid_credentials",
+          });
+        }
+
+        // Check if user is activated
+        if (!user.is_active) {
+          return done(null, false, {
+            message: "email_not_verified",
+          });
+        }
+
+        return done(null, user);
+      } catch (error) {
+        return done(error);
+      }
+    }
+  )
+);
+
+passport.use(
   "jwt",
   new JwtStrategy(
     {

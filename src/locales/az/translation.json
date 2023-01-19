@@ -5,5 +5,8 @@
   "emailIsTaken": "Bu Email ilə istifadəçi artıq var",
   "subjectEmailVerification": "Tekliff.az-da qeydiyyatı təsdiqləyin",
   "invalidActivationToken": "Yanlış aktivasiya tokeni",
-  "serverError": "Server xətası..."
+  "serverError": "Server xətası...",
+  "passwordRequired": "Zəhmət olmasa, parolu göstərin",
+  "emailNotVerified": "Email təsdiqlənməyib",
+  "invalidCredentials": "Yanlış Email və ya parol"
 }

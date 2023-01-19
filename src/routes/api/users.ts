@@ -5,7 +5,7 @@ import logger from "../../utils/logger";
 
 const router = express.Router();
 
-type PassportValidationError = "email_is_taken" | undefined;
+type LocalSignUpError = { message: "email_is_taken" } | undefined;
 
 // @route  POST api/users
 // @desc   Register user
@@ -36,12 +36,12 @@ router.post(
 
     return passport.authenticate(
       "local-signup",
-      (err, user, validationError: PassportValidationError) => {
+      (err, user, signUpError: LocalSignUpError) => {
         if (err) {
           logger.error(err.message);
           return res.status(500).send(req.t("serverError"));
         }
-        if (validationError === "email_is_taken") {
+        if (signUpError?.message === "email_is_taken") {
           return res.status(400).json({
             errors: [
               {

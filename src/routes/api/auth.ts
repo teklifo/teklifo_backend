@@ -1,11 +1,99 @@
-import express from "express";
+import express, { Request, Response, NextFunction } from "express";
+import { check, validationResult } from "express-validator";
 import { MoreThan } from "typeorm";
+import passport from "passport";
 import jwt from "jsonwebtoken";
 import { User } from "../../entities/User";
 import { JWT_SECRET } from "../../utils/secrets";
 import logger from "../../utils/logger";
 
 const router = express.Router();
+
+type LocalSignInError =
+  | {
+      message: "invalid_credentials" | "email_not_verified";
+    }
+  | undefined;
+
+// @route GET api/auth
+// @desc  Get user info via token
+// @access Public
+router.get("/", async (req, res, next) => {
+  passport.authenticate("jwt", (err, user, info) => {
+    if (err) {
+      logger.error(err.message);
+      return res.status(500).send(req.t("serverError"));
+    }
+    if (info) {
+      return res.status(400).json({ errors: [info] });
+    }
+    return res.json(user);
+  })(req, res, next);
+});
+
+// @route POST api/auth
+// @desc  Authenticate user & get user
+// @access Public
+router.post(
+  "/",
+  [
+    check("email")
+      .isEmail()
+      .withMessage((_, { req }) => req.t("invalidEmail")),
+    check("password")
+      .notEmpty()
+      .withMessage((_, { req }) => req.t("passwordRequired")),
+  ],
+  async (req: Request, res: Response, next: NextFunction) => {
+    // Validation
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        errors: errors.array(),
+      });
+    }
+
+    return passport.authenticate(
+      "local-signin",
+      (err, user, signInError: LocalSignInError) => {
+        if (err) {
+          logger.error(err.message);
+          return res.status(500).send(req.t("serverError"));
+        }
+
+        if (signInError?.message === "email_not_verified") {
+          return res.status(400).json({
+            errors: [
+              {
+                param: "email",
+                msg: req.t("emailNotVerified"),
+              },
+            ],
+          });
+        }
+
+        if (signInError?.message === "invalid_credentials") {
+          return res.status(400).json({
+            errors: [
+              {
+                param: "email",
+                msg: req.t("invalidCredentials"),
+              },
+            ],
+          });
+        }
+
+        const payload = {
+          user: {
+            id: user.id,
+          },
+        };
+        const token = jwt.sign(payload, JWT_SECRET);
+        return res.json({ token });
+      }
+    )(req, res, next);
+  }
+);
 
 // @route POST api/auth/verification/
 // @desc  Email verification
