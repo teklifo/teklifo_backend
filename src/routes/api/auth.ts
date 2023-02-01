@@ -103,11 +103,10 @@ router.post(
 // @access Public
 router.post("/verification", async (req, res) => {
   try {
-    const { email, activationToken } = req.body;
+    const { activationToken } = req.body;
 
     // Find user by activation token
     const user = await User.findOneBy({
-      email: email.toLowerCase(),
       is_active: false,
       activation_token: activationToken,
       activation_token_expires: MoreThan(new Date()),
