@@ -209,9 +209,6 @@ router.post(
 router.post(
   "/check_reset_password_token",
   [
-    check("email")
-      .isEmail()
-      .withMessage((_, { req }) => req.t("invalidEmail")),
     check("resetPasswordToken")
       .notEmpty()
       .withMessage((_, { req }) => req.t("resetPasswordTokenIsRequired")),
@@ -225,12 +222,11 @@ router.post(
       });
     }
 
-    const { email, resetPasswordToken } = req.body;
+    const { resetPasswordToken } = req.body;
 
     try {
       // Find user by reset password token
       const user = await User.findOneBy({
-        email: email.toLowerCase(),
         reset_password_token: resetPasswordToken,
         reset_password_token_expires: MoreThan(new Date()),
       });
@@ -256,9 +252,6 @@ router.post(
 router.post(
   "/reset_password",
   [
-    check("email")
-      .isEmail()
-      .withMessage((_, { req }) => req.t("invalidEmail")),
     check("resetPasswordToken")
       .exists()
       .notEmpty()
@@ -277,11 +270,10 @@ router.post(
     }
 
     try {
-      const { email, resetPasswordToken, password } = req.body;
+      const { resetPasswordToken, password } = req.body;
 
       // Find user by reset password token
       const user = await User.findOneBy({
-        email: email.toLowerCase(),
         reset_password_token: resetPasswordToken,
         reset_password_token_expires: MoreThan(new Date()),
       });
