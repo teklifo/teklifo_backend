@@ -5,7 +5,7 @@ import bcrypt from "bcrypt";
 import randomstring from "randomstring";
 import emailSender from "./nodemailer/emailSender";
 import { User } from "../entities/User";
-import { JWT_SECRET } from "../utils/secrets";
+import { JWT_SECRET, CLIENT_URL } from "../utils/secrets";
 
 const LocalStrategy = passportLocal.Strategy;
 const JwtStrategy = passportJwt.Strategy;
@@ -66,7 +66,7 @@ passport.use(
           subject: req.t("subjectEmailVerification"),
           receivers: email,
           context: {
-            activationToken,
+            url: `${CLIENT_URL}/verification?activationToken=${activationToken}`,
           },
         });
 

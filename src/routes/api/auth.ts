@@ -7,7 +7,7 @@ import bcrypt from "bcrypt";
 import randomstring from "randomstring";
 import { User } from "../../entities/User";
 import emailSender from "../../config/nodemailer/emailSender";
-import { JWT_SECRET } from "../../utils/secrets";
+import { JWT_SECRET, CLIENT_URL } from "../../utils/secrets";
 import logger from "../../utils/logger";
 
 const router = express.Router();
@@ -191,7 +191,7 @@ router.post(
         subject: req.t("subjectResetPassword"),
         receivers: email,
         context: {
-          resetPasswordToken,
+          url: `${CLIENT_URL}/set_new_password?resetPasswordToken=${resetPasswordToken}`,
         },
       });
 

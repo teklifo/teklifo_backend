@@ -22,3 +22,5 @@ export const MAILGUN_DOMAIN = process.env["MAILGUN_DOMAIN"] ?? "";
 export const MAILGUN_HOST = process.env["MAILGUN_HOST"] ?? "";
 
 export const JWT_SECRET = process.env["JWT_SECRET"] ?? "";
+
+export const CLIENT_URL = process.env["CLIENT_URL"] ?? "";
