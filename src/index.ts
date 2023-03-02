@@ -8,6 +8,7 @@ import cors from "cors";
 import "./config/passport";
 import { userRouter } from "./routes/api/users";
 import { authRouter } from "./routes/api/auth";
+import { companyRouter } from "./routes/api/companies";
 import { User } from "./entities/User";
 import { Company } from "./entities/Company";
 import { Item } from "./entities/Item";
@@ -56,6 +57,7 @@ const main = async () => {
 
     app.use("/api/users", userRouter);
     app.use("/api/auth", authRouter);
+    app.use("/api/companies", companyRouter);
 
     app.listen(PORT, () => {
       logger.info(`Server started on port ${PORT}`);

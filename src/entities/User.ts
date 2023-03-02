@@ -69,7 +69,7 @@ export class User extends BaseEntity {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @ManyToMany(() => User)
+  @ManyToMany(() => Company, (company) => company.users)
   @JoinTable({
     name: "users_companies",
     joinColumn: {

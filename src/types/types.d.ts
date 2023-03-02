@@ -11,3 +11,13 @@ export interface ValidationExceptionType {
   message: string;
   errors: ValidationError[];
 }
+
+declare global {
+  namespace Express {
+    interface User {
+      id: number;
+      name: string;
+      email: string;
+    }
+  }
+}

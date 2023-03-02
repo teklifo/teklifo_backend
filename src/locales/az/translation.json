@@ -14,5 +14,7 @@
   "subjectResetPassword": "Parolun bərpa etməsi",
   "resetPasswordEmailSent": "Parolun bərpa etmək üçün token uğurla yaradılıb",
   "invalidResetPasswordToken": "Parolu bərpa etmək üçün token yanlışdır",
-  "resetPasswordTokenIsValid": "Parolu bərpa etmək üçün token düzgündür"
+  "resetPasswordTokenIsValid": "Parolu bərpa etmək üçün token düzgündür",
+  "userNotFound": "İstifadəçi tapılmadı",
+  "tinIsNotUnique": "Bu VÖEN ilə təşkilat artıq yaradılıb"
 }

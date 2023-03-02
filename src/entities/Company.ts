@@ -76,6 +76,6 @@ export class Company extends BaseEntity {
   @OneToMany(() => Item, (item) => item.company)
   items: Item[];
 
-  @ManyToMany(() => User)
+  @ManyToMany(() => User, (user) => user.companies)
   users: User[];
 }

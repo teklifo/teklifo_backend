@@ -14,5 +14,7 @@
   "subjectResetPassword": "Восстановление пароля",
   "resetPasswordEmailSent": "Токен для восстановления пароля успешно сформирован",
   "invalidResetPasswordToken": "Неверный токен восстановления пароля",
-  "resetPasswordTokenIsValid": "Токен восстановления пароля корректен"
+  "resetPasswordTokenIsValid": "Токен восстановления пароля корректен",
+  "userNotFound": "Пользователь не найден",
+  "tinIsNotUnique": "Организация с таким ИНН уже существует"
 }
