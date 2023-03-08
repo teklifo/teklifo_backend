@@ -146,6 +146,7 @@ passport.use(
             updated_at: true,
             companies: true,
           },
+          relations: ["companies"],
         });
         if (!user) {
           return done(null, false, { message: "authorization_denied" });
