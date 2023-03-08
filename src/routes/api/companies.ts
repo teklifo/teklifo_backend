@@ -63,7 +63,6 @@ router.post(
 
       await company.save();
 
-      logger.info("Hello");
       return res.json(company);
     } catch (error) {
       logger.error(error.message);
