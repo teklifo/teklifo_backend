@@ -16,5 +16,11 @@
   "invalidResetPasswordToken": "Неверный токен восстановления пароля",
   "resetPasswordTokenIsValid": "Токен восстановления пароля корректен",
   "userNotFound": "Пользователь не найден",
-  "tinIsNotUnique": "Организация с таким ИНН уже существует"
+  "tinIsNotUnique": "Организация с таким ИНН уже существует",
+  "itemExternalIdIsRequired": "Не указан идентификатор номенклатуры из внешней системы",
+  "itemNameIsRequired": "Не указано наименование номенклатуры",
+  "itemCompanyIsRequired": "Не указана организация, которой принадлежит номенклатура",
+  "invalidCompanyId": "Организация не найдена",
+  "userIsNotAMember": "Пользователь не является членом организации",
+  "externalIdIsNotUnique": "Внешние идентификаторы не уникальны"
 }

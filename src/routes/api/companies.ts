@@ -16,10 +16,6 @@ router.post(
     check("name").notEmpty(),
     check("tin").notEmpty(),
     check("type").isIn(["physical", "entity"]),
-    check("logo_url").exists(),
-    check("description").exists(),
-    check("contacts").exists(),
-    check("socials").exists(),
     passport.authenticate("jwt", { session: false }),
   ],
   async (req: Request, res: Response) => {

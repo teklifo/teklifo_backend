@@ -58,9 +58,9 @@ export class Item extends BaseEntity {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @ManyToOne(() => Company, (company) => company.items)
+  @ManyToOne(() => Company, (company) => company.items, { nullable: false })
   @JoinColumn({
-    name: "company_id",
+    name: "company",
   })
   company: Company;
 }

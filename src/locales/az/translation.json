@@ -16,5 +16,11 @@
   "invalidResetPasswordToken": "Parolu bərpa etmək üçün token yanlışdır",
   "resetPasswordTokenIsValid": "Parolu bərpa etmək üçün token düzgündür",
   "userNotFound": "İstifadəçi tapılmadı",
-  "tinIsNotUnique": "Bu VÖEN ilə təşkilat artıq yaradılıb"
+  "tinIsNotUnique": "Bu VÖEN ilə təşkilat artıq yaradılıb",
+  "itemExternalIdIsRequired": "Xarici sistemdəki nomenklaturanın identifikatoru göstərilməyib",
+  "itemNameIsRequired": "Nomenklaturanın adı göstərilməyib",
+  "itemCompanyIsRequired": "Nomenklaturanın təşkilatı göstərilməyib",
+  "invalidCompanyId": "Təşkilat tapılmadı",
+  "userIsNotAMember": "İstifadəçi təşkilatın üzvü deyil",
+  "externalIdIsNotUnique": "Xarici identifikatorlar unikal deyil"
 }

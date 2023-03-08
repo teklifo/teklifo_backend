@@ -50,6 +50,7 @@ export class Company extends BaseEntity {
 
   @Column({
     type: "simple-json",
+    default: "{}",
   })
   contacts: {
     phone: string[];
@@ -60,6 +61,7 @@ export class Company extends BaseEntity {
 
   @Column({
     type: "simple-json",
+    default: "{}",
   })
   socials: {
     facebook: string;
