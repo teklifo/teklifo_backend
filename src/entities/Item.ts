@@ -38,6 +38,11 @@ export class Item extends BaseEntity {
   is_service: boolean;
 
   @Column({
+    default: true,
+  })
+  is_available: boolean;
+
+  @Column({
     default: 0,
   })
   sell_price: number;
@@ -47,10 +52,11 @@ export class Item extends BaseEntity {
   })
   purchase_price: number;
 
-  @Column({
-    default: "",
+  @Column("text", {
+    default: [],
+    array: true,
   })
-  picture_url: string;
+  images: string[];
 
   @CreateDateColumn()
   created_at: Date;

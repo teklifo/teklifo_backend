@@ -15,7 +15,7 @@ interface ItemStructure {
   is_service?: boolean;
   sale_price?: number;
   purchase_price?: number;
-  picture_url?: string;
+  images?: string[];
 }
 
 interface CreateItemsBody {
