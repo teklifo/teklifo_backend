@@ -22,5 +22,6 @@
   "itemCompanyIsRequired": "Nomenklaturanın təşkilatı göstərilməyib",
   "invalidCompanyId": "Təşkilat tapılmadı",
   "userIsNotAMember": "İstifadəçi təşkilatın üzvü deyil",
-  "externalIdIsNotUnique": "Xarici identifikatorlar unikal deyil"
+  "externalIdIsNotUnique": "Xarici identifikatorlar unikal deyil",
+  "pageAndlimitAreRequired": "Page və limit parametrləri göstərilmək lazımdır"
 }

@@ -67,4 +67,65 @@ router.post(
   }
 );
 
+// @route  GET api/companies
+// @desc   Get list of companies
+// @access Public
+router.get("/", async (req: Request, res: Response) => {
+  const page = parseInt(req.query.page as string, 10);
+  const limit = parseInt(req.query.limit as string, 10);
+
+  const startIndex = (page - 1) * limit;
+
+  if (!page || !limit)
+    return res.json({ message: req.t("pageAndlimitAreRequired") });
+
+  try {
+    const total = await Company.count({
+      order: { name: "DESC" },
+      take: limit * 10,
+      skip: startIndex,
+    });
+
+    const result = await Company.find({
+      order: { name: "DESC" },
+      take: limit,
+      skip: startIndex,
+    });
+
+    const pagination = getPaginationData(startIndex, page, limit, total);
+
+    return res.json({
+      result,
+      pagination,
+    });
+  } catch (error) {
+    logger.error(error.message);
+    return res.status(500).send(req.t("serverError"));
+  }
+});
+
+const getPaginationData = (
+  startIndex: number,
+  page: number,
+  limit: number,
+  total: number
+) => {
+  const pagination = {
+    skipped: 0,
+    current: 0,
+    available: 0,
+  };
+
+  pagination.available = page - 1 + Math.ceil(total / limit);
+
+  if (startIndex > 0) {
+    pagination.skipped = Math.ceil(startIndex / limit);
+  }
+  if (pagination.available === page) pagination.available = 0;
+
+  pagination.current = page;
+
+  return pagination;
+};
+
 export { router as companyRouter };
