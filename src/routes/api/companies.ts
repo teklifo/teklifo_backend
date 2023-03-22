@@ -80,13 +80,7 @@ router.get("/", async (req: Request, res: Response) => {
     return res.json({ message: req.t("pageAndlimitAreRequired") });
 
   try {
-    const total = await Company.count({
-      order: { name: "DESC" },
-      take: limit * 10,
-      skip: startIndex,
-    });
-
-    const result = await Company.find({
+    const [result, total] = await Company.findAndCount({
       order: { name: "DESC" },
       take: limit,
       skip: startIndex,
@@ -113,17 +107,14 @@ const getPaginationData = (
   const pagination = {
     skipped: 0,
     current: 0,
-    available: 0,
+    total: 0,
   };
-
-  pagination.available = page - 1 + Math.ceil(total / limit);
 
   if (startIndex > 0) {
     pagination.skipped = Math.ceil(startIndex / limit);
   }
-  if (pagination.available === page) pagination.available = 0;
-
   pagination.current = page;
+  pagination.total = Math.ceil(total / limit);
 
   return pagination;
 };
