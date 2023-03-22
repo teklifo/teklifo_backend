@@ -32,7 +32,7 @@ router.post(
       const userId = req.user?.id;
       const user = await User.findOneBy({ id: userId });
       if (!user || !user.is_active) {
-        return res.json({ message: req.t("userNotFound") });
+        return res.status(400).json({ message: req.t("userNotFound") });
       }
 
       const { name, tin, type, logo_url, description, contacts, socials } =
@@ -43,7 +43,7 @@ router.post(
         tin,
       });
       if (existingCompany) {
-        return res.json({ message: req.t("tinIsNotUnique") });
+        return res.status(400).json({ message: req.t("tinIsNotUnique") });
       }
 
       const company = Company.create({
