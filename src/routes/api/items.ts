@@ -91,21 +91,21 @@ router.post(
         });
       }
 
-      const data = await AppDataSource.createQueryBuilder()
+      const values = items.map((item) => {
+        return {
+          ...item,
+          external_id: `${company.id}_${item.external_id}`,
+          company: company,
+        };
+      });
+
+      await AppDataSource.createQueryBuilder()
         .insert()
         .into(Item)
-        .values(
-          items.map((item) => {
-            return {
-              ...item,
-              external_id: `${company.id}_${item.external_id}`,
-              company: company,
-            };
-          })
-        )
+        .values(values)
         .execute();
 
-      return res.json(data.raw);
+      return res.json(values);
     } catch (error) {
       logger.error(error.message);
       return res.status(500).send(req.t("serverError"));
