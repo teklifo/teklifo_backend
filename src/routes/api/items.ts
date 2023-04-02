@@ -6,6 +6,7 @@ import AppDataSource from "../../config/appDataSource";
 import { Item } from "../../entities/Item";
 import { User } from "../../entities/User";
 import { Company } from "../../entities/Company";
+import getPaginationData from "../../utils/getPaginationData";
 import logger from "../../utils/logger";
 
 interface ItemStructure {
@@ -113,4 +114,38 @@ router.post(
   }
 );
 
+// @route  GET api/items
+// @desc   Get list of items
+// @access Public
+router.get("/", async (req: Request, res: Response) => {
+  const page = parseInt(req.query.page as string, 10);
+  const limit = parseInt(req.query.limit as string, 10);
+
+  const startIndex = (page - 1) * limit;
+
+  if (!page || !limit)
+    return res.json({ message: req.t("pageAndlimitAreRequired") });
+
+  try {
+    const [result, total] = await Item.findAndCount({
+      where: {
+        company: { id: parseInt(req.query.company as string, 10) },
+      },
+      order: { name: "DESC" },
+      take: limit,
+      skip: startIndex,
+      relations: ["company"],
+    });
+
+    const pagination = getPaginationData(startIndex, page, limit, total);
+
+    return res.json({
+      result,
+      pagination,
+    });
+  } catch (error) {
+    logger.error(error.message);
+    return res.status(500).send(req.t("serverError"));
+  }
+});
 export { router as itemRouter };

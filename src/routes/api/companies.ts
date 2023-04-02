@@ -3,6 +3,7 @@ import { check, validationResult } from "express-validator";
 import passport from "passport";
 import { User } from "../../entities/User";
 import { Company } from "../../entities/Company";
+import getPaginationData from "../../utils/getPaginationData";
 import logger from "../../utils/logger";
 
 const router = express.Router();
@@ -110,25 +111,27 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-const getPaginationData = (
-  startIndex: number,
-  page: number,
-  limit: number,
-  total: number
-) => {
-  const pagination = {
-    skipped: 0,
-    current: 0,
-    total: 0,
-  };
+// @route GET api/posts/:id
+// @desc  Get single company
+// @access Public
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
 
-  if (startIndex > 0) {
-    pagination.skipped = Math.ceil(startIndex / limit);
+  try {
+    const company = await Company.findOneBy({ id: parseInt(id) });
+
+    // Company not found
+    if (!company) {
+      return res
+        .status(404)
+        .json({ errors: [{ msg: req.t("invalidCompanyId") }] });
+    }
+
+    return res.json(company);
+  } catch (error) {
+    logger.error(error.message);
+    return res.status(500).send(req.t("serverError"));
   }
-  pagination.current = page;
-  pagination.total = Math.ceil(total / limit);
-
-  return pagination;
-};
+});
 
 export { router as companyRouter };
