@@ -3,8 +3,8 @@ import passportLocal from "passport-local";
 import passportJwt from "passport-jwt";
 import bcrypt from "bcrypt";
 import randomstring from "randomstring";
+import prisma from "./db";
 import emailSender from "./nodemailer/emailSender";
-import { User } from "../entities/User";
 import { JWT_SECRET, CLIENT_URL } from "../utils/secrets";
 
 const LocalStrategy = passportLocal.Strategy;
@@ -24,10 +24,10 @@ passport.use(
         const { name } = req.body;
 
         // Check if user already exists
-        let user = await User.findOneBy({
-          email: email.toLowerCase(),
+        const existingUser = await prisma.user.findUnique({
+          where: { email: email.toLowerCase(), isActive: true },
         });
-        if (user && user.is_active) {
+        if (existingUser && existingUser.isActive) {
           return done(null, false, { message: "email_is_taken" });
         }
 
@@ -42,23 +42,25 @@ passport.use(
           new Date().getTime() + minutes * 60000
         );
 
-        if (user) {
-          user.name = name;
-          user.password = hashedPassword;
-          user.activation_token = activationToken;
-          user.activation_token_expires = activationTokenExpires;
-        } else {
-          user = User.create({
-            name: req.body.name,
+        // Create a new user or update existing one
+        const user = await prisma.user.upsert({
+          where: {
+            email: email.toLowerCase(),
+          },
+          update: {
+            name: name,
+            password: hashedPassword,
+            activationToken: activationToken,
+            activationTokenExpires: activationTokenExpires,
+          },
+          create: {
+            name,
             email: email.toLowerCase(),
             password: hashedPassword,
-            activation_token: activationToken,
-            activation_token_expires: activationTokenExpires,
-          });
-        }
-
-        // Save user
-        await user.save();
+            activationToken: activationToken,
+            activationTokenExpires: activationTokenExpires,
+          },
+        });
 
         // Send verification email
         await emailSender({
@@ -93,8 +95,10 @@ passport.use(
     async (req, email, password, done) => {
       try {
         // Check if user exists
-        const user = await User.findOneBy({
-          email: email.toLowerCase(),
+        const user = await prisma.user.findUnique({
+          where: {
+            email,
+          },
         });
 
         if (!user) {
@@ -112,13 +116,17 @@ passport.use(
         }
 
         // Check if user is activated
-        if (!user.is_active) {
+        if (!user.isActive) {
           return done(null, false, {
             message: "email_not_verified",
           });
         }
 
-        return done(null, user);
+        return done(null, {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        });
       } catch (error) {
         return done(error);
       }
@@ -135,18 +143,15 @@ passport.use(
     },
     async (jwtPayload, done) => {
       try {
-        const user = await User.findOne({
-          where: { id: jwtPayload.user.id },
+        const user = await prisma.user.findUnique({
+          where: {
+            id: jwtPayload.user.id,
+          },
           select: {
             id: true,
             name: true,
             email: true,
-            avatar_url: true,
-            created_at: true,
-            updated_at: true,
-            companies: true,
           },
-          relations: ["companies"],
         });
         if (!user) {
           return done(null, false, { message: "authorization_denied" });

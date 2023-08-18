@@ -4,12 +4,10 @@ import i18next from "i18next";
 import Backend from "i18next-fs-backend";
 import middleware from "i18next-http-middleware";
 import cors from "cors";
-import "./config/appDataSource";
 import "./config/passport";
 import { userRouter } from "./routes/api/users";
 import { authRouter } from "./routes/api/auth";
 import { companyRouter } from "./routes/api/companies";
-import { itemRouter } from "./routes/api/items";
 import logger from "./utils/logger";
 import { PORT } from "./utils/secrets";
 
@@ -35,7 +33,6 @@ const main = async () => {
     app.use("/api/users", userRouter);
     app.use("/api/auth", authRouter);
     app.use("/api/companies", companyRouter);
-    app.use("/api/items", itemRouter);
 
     app.listen(PORT, () => {
       logger.info(`Server started on port ${PORT}`);

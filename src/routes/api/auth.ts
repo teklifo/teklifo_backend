@@ -1,11 +1,10 @@
 import express, { Request, Response, NextFunction } from "express";
 import { check, validationResult } from "express-validator";
-import { MoreThan } from "typeorm";
 import passport from "passport";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import randomstring from "randomstring";
-import { User } from "../../entities/User";
+import prisma from "../../config/db";
 import emailSender from "../../config/nodemailer/emailSender";
 import { JWT_SECRET, CLIENT_URL } from "../../utils/secrets";
 import logger from "../../utils/logger";
@@ -86,12 +85,7 @@ router.post(
           });
         }
 
-        const payload = {
-          user: {
-            id: user.id,
-          },
-        };
-        const token = jwt.sign(payload, JWT_SECRET);
+        const token = jwt.sign(user, JWT_SECRET);
         return res.json({ token });
       }
     )(req, res, next);
@@ -105,11 +99,20 @@ router.post("/verification", async (req, res) => {
   try {
     const { activationToken } = req.body;
 
-    // Find user by activation token
-    const user = await User.findOneBy({
-      is_active: false,
-      activation_token: activationToken,
-      activation_token_expires: MoreThan(new Date()),
+    // Find user by activation token and update
+    const user = await prisma.user.update({
+      where: {
+        isActive: false,
+        activationToken,
+        activationTokenExpires: {
+          gte: new Date(),
+        },
+      },
+      data: {
+        isActive: true,
+        activationToken: null,
+        activationTokenExpires: new Date("0001-01-01"),
+      },
     });
 
     // User not found
@@ -119,17 +122,11 @@ router.post("/verification", async (req, res) => {
       });
     }
 
-    // Update user
-    user.is_active = true;
-    user.activation_token = null;
-    user.activation_token_expires = new Date("0001-01-01");
-    await user.save();
-
     // Login user
     const payload = {
-      user: {
-        id: user.id,
-      },
+      id: user.id,
+      name: user.name,
+      email: user.email,
     };
     const token = jwt.sign(payload, JWT_SECRET);
     return res.json({ token });
@@ -160,10 +157,23 @@ router.post(
 
     const { email } = req.body;
 
+    // Generate unique reset password token
+    const resetPasswordToken = randomstring.generate();
+    const minutes = 30;
+    const resetPasswordTokenExpires = new Date(
+      new Date().getTime() + minutes * 60000
+    );
+
     try {
-      // Find user by email address
-      const user = await User.findOneBy({
-        email: email.toLowerCase(),
+      // Find user by email address and update
+      const user = await prisma.user.update({
+        where: {
+          email: email.toLowerCase(),
+        },
+        data: {
+          resetPasswordToken,
+          resetPasswordTokenExpires,
+        },
       });
 
       // User not found
@@ -172,18 +182,6 @@ router.post(
           errors: [{ msg: req.t("noUserWithSuchEmail") }],
         });
       }
-
-      // Generate unique reset password token
-      const resetPasswordToken = randomstring.generate();
-      const minutes = 30;
-      const resetPasswordTokenExpires = new Date(
-        new Date().getTime() + minutes * 60000
-      );
-
-      // Update user
-      user.reset_password_token = resetPasswordToken;
-      user.reset_password_token_expires = resetPasswordTokenExpires;
-      await user.save();
 
       // Send password reset email
       await emailSender({
@@ -226,9 +224,13 @@ router.post(
 
     try {
       // Find user by reset password token
-      const user = await User.findOneBy({
-        reset_password_token: resetPasswordToken,
-        reset_password_token_expires: MoreThan(new Date()),
+      const user = await prisma.user.findUnique({
+        where: {
+          resetPasswordToken: resetPasswordToken,
+          resetPasswordTokenExpires: {
+            gte: new Date(),
+          },
+        },
       });
 
       // User not found
@@ -272,10 +274,24 @@ router.post(
     try {
       const { resetPasswordToken, password } = req.body;
 
-      // Find user by reset password token
-      const user = await User.findOneBy({
-        reset_password_token: resetPasswordToken,
-        reset_password_token_expires: MoreThan(new Date()),
+      // Encrypt password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+
+      // Find user by activation token and update
+      const user = await prisma.user.update({
+        where: {
+          isActive: false,
+          resetPasswordToken,
+          resetPasswordTokenExpires: {
+            gte: new Date(),
+          },
+        },
+        data: {
+          password: hashedPassword,
+          resetPasswordToken: null,
+          resetPasswordTokenExpires: new Date("0001-01-01"),
+        },
       });
 
       // User not found
@@ -285,21 +301,11 @@ router.post(
         });
       }
 
-      // Encrypt password
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-
-      // Update user
-      user.password = hashedPassword;
-      user.reset_password_token = null;
-      user.reset_password_token_expires = new Date("0001-01-01");
-      await user.save();
-
       // Login user
       const payload = {
-        user: {
-          id: user.id,
-        },
+        id: user.id,
+        name: user.name,
+        email: user.email,
       };
       const token = jwt.sign(payload, JWT_SECRET);
       return res.json({ token });

@@ -1,8 +1,7 @@
 import express, { Request, Response } from "express";
 import { check, validationResult } from "express-validator";
 import passport from "passport";
-import { User } from "../../entities/User";
-import { Company } from "../../entities/Company";
+import prisma from "../../config/db";
 import getPaginationData from "../../utils/getPaginationData";
 import logger from "../../utils/logger";
 
@@ -16,7 +15,9 @@ router.post(
   [
     check("name").notEmpty(),
     check("tin").notEmpty(),
-    check("type").isIn(["physical", "entity"]),
+    check("entityType").isIn(["physical", "entity"]),
+    check("description").isLength({ min: 200 }),
+    check("shortDescription").isLength({ min: 200 }),
     passport.authenticate("jwt", { session: false }),
   ],
   async (req: Request, res: Response) => {
@@ -31,8 +32,8 @@ router.post(
     try {
       // Find user
       const userId = req.user?.id;
-      const user = await User.findOneBy({ id: userId });
-      if (!user || !user.is_active) {
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user || !user.isActive) {
         return res.status(400).json({
           errors: [
             {
@@ -42,12 +43,20 @@ router.post(
         });
       }
 
-      const { name, tin, type, logo_url, description, contacts, socials } =
-        req.body;
-
-      // Check if company is unique
-      const existingCompany = await Company.findOneBy({
+      const {
+        name,
         tin,
+        entityType,
+        image,
+        description,
+        shortDescription,
+        contacts,
+        socials,
+      } = req.body;
+
+      // Check if tin is unique
+      const existingCompany = await prisma.company.findUnique({
+        where: { tin },
       });
       if (existingCompany) {
         return res.status(400).json({
@@ -59,18 +68,27 @@ router.post(
         });
       }
 
-      const company = Company.create({
-        name,
-        tin,
-        type,
-        logo_url,
-        description,
-        contacts,
-        socials,
-        users: [user],
+      const company = await prisma.company.create({
+        data: {
+          name,
+          tin,
+          entityType,
+          image,
+          description,
+          shortDescription,
+          contacts,
+          socials,
+          users: {
+            create: {
+              user: {
+                connect: {
+                  id: userId,
+                },
+              },
+            },
+          },
+        },
       });
-
-      await company.save();
 
       return res.json(company);
     } catch (error) {
@@ -93,11 +111,16 @@ router.get("/", async (req: Request, res: Response) => {
     return res.json({ message: req.t("pageAndlimitAreRequired") });
 
   try {
-    const [result, total] = await Company.findAndCount({
-      order: { name: "DESC" },
-      take: limit,
-      skip: startIndex,
-    });
+    const [total, result] = await prisma.$transaction([
+      prisma.company.count(),
+      prisma.company.findMany({
+        take: limit,
+        skip: startIndex,
+        orderBy: {
+          name: "desc",
+        },
+      }),
+    ]);
 
     const pagination = getPaginationData(startIndex, page, limit, total);
 
@@ -118,7 +141,9 @@ router.get("/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    const company = await Company.findOneBy({ id: parseInt(id) });
+    const company = await prisma.company.findUnique({
+      where: { id: parseInt(id) },
+    });
 
     // Company not found
     if (!company) {
