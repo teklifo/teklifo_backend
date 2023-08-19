@@ -4,7 +4,7 @@ import passportJwt from "passport-jwt";
 import bcrypt from "bcrypt";
 import randomstring from "randomstring";
 import prisma from "./db";
-import emailSender from "./nodemailer/emailSender";
+import sendEmail from "./nodemailer/sendEmail";
 import { JWT_SECRET, CLIENT_URL } from "../utils/secrets";
 
 const LocalStrategy = passportLocal.Strategy;
@@ -63,19 +63,24 @@ passport.use(
         });
 
         // Send verification email
-        await emailSender({
+        await sendEmail({
           emailType: "email_verification",
           subject: req.t("subjectEmailVerification"),
           receivers: email,
           context: {
             url: `${CLIENT_URL}/verification?activationToken=${activationToken}`,
           },
+          locale: req.language,
         });
 
         return done(null, {
           id: user.id,
           name: user.name,
           email: user.email,
+          image: user.image,
+          isActive: user.isActive,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
         });
       } catch (error) {
         return done(error);
@@ -126,6 +131,10 @@ passport.use(
           id: user.id,
           name: user.name,
           email: user.email,
+          image: user.image,
+          isActive: user.isActive,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
         });
       } catch (error) {
         return done(error);
@@ -151,6 +160,11 @@ passport.use(
             id: true,
             name: true,
             email: true,
+            image: true,
+            isActive: true,
+            createdAt: true,
+            updatedAt: true,
+            companies: true,
           },
         });
         if (!user) {

@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import randomstring from "randomstring";
 import prisma from "../../config/db";
-import emailSender from "../../config/nodemailer/emailSender";
+import sendEmail from "../../config/nodemailer/sendEmail";
 import { JWT_SECRET, CLIENT_URL } from "../../utils/secrets";
 import logger from "../../utils/logger";
 
@@ -127,6 +127,10 @@ router.post("/verification", async (req, res) => {
       id: user.id,
       name: user.name,
       email: user.email,
+      image: user.image,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
     const token = jwt.sign(payload, JWT_SECRET);
     return res.json({ token });
@@ -184,13 +188,14 @@ router.post(
       }
 
       // Send password reset email
-      await emailSender({
+      await sendEmail({
         emailType: "reset_password",
         subject: req.t("subjectResetPassword"),
         receivers: email,
         context: {
           url: `${CLIENT_URL}/set_new_password?resetPasswordToken=${resetPasswordToken}`,
         },
+        locale: req.language,
       });
 
       return res.send(req.t("resetPasswordEmailSent"));
@@ -306,6 +311,10 @@ router.post(
         id: user.id,
         name: user.name,
         email: user.email,
+        image: user.image,
+        isActive: user.isActive,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
       };
       const token = jwt.sign(payload, JWT_SECRET);
       return res.json({ token });

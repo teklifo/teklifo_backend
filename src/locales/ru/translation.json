@@ -3,7 +3,7 @@
   "invalidEmail": "Пожалуйста, укажите правильный Email",
   "invalidPassword": "Пароль должен содержать как минимум 6 символов",
   "emailIsTaken": "Пользователь с этим Email уже существует",
-  "subjectEmailVerification": "Подтвердите регистрацию на Tekliff.az",
+  "subjectEmailVerification": "Подтвердите регистрацию на Teklifo",
   "invalidActivationToken": "Неверный токен активации",
   "serverError": "Ошибка сервера...",
   "passwordRequired": "Пожалуйста, укажите пароль",

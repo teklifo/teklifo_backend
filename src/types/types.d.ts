@@ -18,6 +18,10 @@ declare global {
       id: number;
       name: string;
       email: string;
+      isActive: boolean;
+      image: string?;
+      createdAt: Date;
+      updatedAt: Date;
     }
   }
 }
