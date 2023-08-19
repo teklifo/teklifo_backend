@@ -68,7 +68,7 @@ passport.use(
           subject: req.t("subjectEmailVerification"),
           receivers: email,
           context: {
-            url: `${CLIENT_URL}/verification?activationToken=${activationToken}`,
+            url: `${CLIENT_URL}/email_verification?activationToken=${activationToken}`,
           },
           locale: req.language,
         });
@@ -154,7 +154,7 @@ passport.use(
       try {
         const user = await prisma.user.findUnique({
           where: {
-            id: jwtPayload.user.id,
+            id: jwtPayload.id,
           },
           select: {
             id: true,

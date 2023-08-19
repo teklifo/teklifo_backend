@@ -8,9 +8,12 @@ export default async function emailTemplate(
   context: EmailContextType,
   locale: string
 ) {
+  let localeFolder = "az";
+  if (locale.toLocaleLowerCase().startsWith("ru")) localeFolder = "ru";
+
   const filePath = path.join(
     process.cwd(),
-    `src/config/nodemailer/emails/${locale}/${emailType}.html`
+    `src/config/nodemailer/emails/${localeFolder}/${emailType}.html`
   );
 
   const source = (await fs.promises.readFile(filePath, "utf-8")).toString();
