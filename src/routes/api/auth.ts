@@ -96,31 +96,38 @@ router.post(
 // @desc  Email verification
 // @access Public
 router.post("/verification", async (req, res) => {
-  try {
-    const { activationToken } = req.body;
+  const { activationToken } = req.body;
 
-    // Find user by activation token and update
+  const conditions = {
+    isActive: false,
+    activationToken,
+    activationTokenExpires: {
+      gte: new Date(),
+    },
+  };
+
+  try {
+    // Find user by activation password token
+    const existingUser = await prisma.user.findUnique({
+      where: conditions,
+    });
+
+    // User not found
+    if (!existingUser) {
+      return res.status(400).json({
+        errors: [{ msg: req.t("invalidActivationToken") }],
+      });
+    }
+
+    // Update user
     const user = await prisma.user.update({
-      where: {
-        isActive: false,
-        activationToken,
-        activationTokenExpires: {
-          gte: new Date(),
-        },
-      },
+      where: conditions,
       data: {
         isActive: true,
         activationToken: null,
         activationTokenExpires: new Date("0001-01-01"),
       },
     });
-
-    // User not found
-    if (!user) {
-      return res.status(400).json({
-        errors: [{ msg: req.t("invalidActivationToken") }],
-      });
-    }
 
     // Login user
     const payload = {
@@ -168,24 +175,31 @@ router.post(
       new Date().getTime() + minutes * 60000
     );
 
+    const conditions = {
+      email: email.toLowerCase(),
+    };
+
     try {
-      // Find user by email address and update
-      const user = await prisma.user.update({
-        where: {
-          email: email.toLowerCase(),
-        },
+      // Find user by email address
+      const existingUser = await prisma.user.findUnique({
+        where: conditions,
+      });
+
+      // User not found
+      if (!existingUser) {
+        return res.status(400).json({
+          errors: [{ msg: req.t("noUserWithSuchEmail") }],
+        });
+      }
+
+      // Update user
+      await prisma.user.update({
+        where: conditions,
         data: {
           resetPasswordToken,
           resetPasswordTokenExpires,
         },
       });
-
-      // User not found
-      if (!user) {
-        return res.status(400).json({
-          errors: [{ msg: req.t("noUserWithSuchEmail") }],
-        });
-      }
 
       // Send password reset email
       await sendEmail({
@@ -276,35 +290,42 @@ router.post(
       });
     }
 
+    const { resetPasswordToken, password } = req.body;
+
+    const conditions = {
+      isActive: false,
+      resetPasswordToken,
+      resetPasswordTokenExpires: {
+        gte: new Date(),
+      },
+    };
+
     try {
-      const { resetPasswordToken, password } = req.body;
+      // Find user by reset password token
+      const existingUser = await prisma.user.findUnique({
+        where: conditions,
+      });
+
+      // User not found
+      if (!existingUser) {
+        return res.status(400).json({
+          errors: [{ msg: req.t("invalidResetPasswordToken") }],
+        });
+      }
 
       // Encrypt password
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-      // Find user by activation token and update
+      // Update user
       const user = await prisma.user.update({
-        where: {
-          isActive: false,
-          resetPasswordToken,
-          resetPasswordTokenExpires: {
-            gte: new Date(),
-          },
-        },
+        where: conditions,
         data: {
           password: hashedPassword,
           resetPasswordToken: null,
           resetPasswordTokenExpires: new Date("0001-01-01"),
         },
       });
-
-      // User not found
-      if (!user) {
-        return res.status(400).json({
-          errors: [{ msg: req.t("invalidResetPasswordToken") }],
-        });
-      }
 
       // Login user
       const payload = {
