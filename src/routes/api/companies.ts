@@ -20,7 +20,7 @@ router.post(
       .isLength({ min: 10 })
       .withMessage((_, { req }) => req.t("invalidTin")),
     check("entityType")
-      .isIn(["physical", "entity"])
+      .isIn(["physical", "legal"])
       .withMessage((_, { req }) => req.t("invalidEntityType")),
     check("description")
       .isLength({ min: 200 })
@@ -118,7 +118,7 @@ router.get("/", async (req: Request, res: Response) => {
   const startIndex = (page - 1) * limit;
 
   if (!page || !limit)
-    return res.json({ message: req.t("pageAndlimitAreRequired") });
+    return res.status(400).json({ message: req.t("pageAndlimitAreRequired") });
 
   try {
     const [total, result] = await prisma.$transaction([
