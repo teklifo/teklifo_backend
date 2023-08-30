@@ -44,7 +44,7 @@ router.post(
       .withMessage((_, { req }) => req.t("invalidEmail")),
     check("password")
       .notEmpty()
-      .withMessage((_, { req }) => req.t("passwordRequired")),
+      .withMessage((_, { req }) => req.t("passwordIsRequired")),
   ],
   async (req: Request, res: Response, next: NextFunction) => {
     // Validation
@@ -279,7 +279,7 @@ router.post(
       .withMessage((_, { req }) => req.t("resetPasswordTokenIsRequired")),
     check("password")
       .notEmpty()
-      .withMessage((_, { req }) => req.t("passwordRequired")),
+      .withMessage((_, { req }) => req.t("passwordIsRequired")),
   ],
   async (req: Request, res: Response) => {
     // Validation

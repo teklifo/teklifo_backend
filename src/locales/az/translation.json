@@ -6,7 +6,7 @@
   "subjectEmailVerification": "Teklifo-da qeydiyyatı təsdiqləyin",
   "invalidActivationToken": "Yanlış aktivasiya tokeni",
   "serverError": "Server xətası...",
-  "passwordRequired": "Zəhmət olmasa, parolu göstərin",
+  "passwordIsRequired": "Zəhmət olmasa, parolu göstərin",
   "emailNotVerified": "Email təsdiqlənməyib",
   "invalidCredentials": "Yanlış Email və ya parol",
   "resetPasswordTokenIsRequired": "Zəhmət olmasa, parolu bərpa etmək üçün tokeni göstərin",

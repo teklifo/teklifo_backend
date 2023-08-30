@@ -13,11 +13,21 @@ const router = express.Router();
 router.post(
   "/",
   [
-    check("name").notEmpty(),
-    check("tin").notEmpty(),
-    check("entityType").isIn(["physical", "entity"]),
-    check("description").isLength({ min: 200 }),
-    check("shortDescription").isLength({ min: 200 }),
+    check("name")
+      .notEmpty()
+      .withMessage((_, { req }) => req.t("companyNameIsRequired")),
+    check("tin")
+      .isLength({ min: 10 })
+      .withMessage((_, { req }) => req.t("invalidTin")),
+    check("entityType")
+      .isIn(["physical", "entity"])
+      .withMessage((_, { req }) => req.t("invalidEntityType")),
+    check("description")
+      .isLength({ min: 200 })
+      .withMessage((_, { req }) => req.t("invalidDescription")),
+    check("shortDescription")
+      .isLength({ min: 100 })
+      .withMessage((_, { req }) => req.t("invalidShortDescription")),
     passport.authenticate("jwt", { session: false }),
   ],
   async (req: Request, res: Response) => {
