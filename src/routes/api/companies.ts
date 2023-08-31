@@ -26,7 +26,7 @@ router.post(
       .isLength({ min: 200 })
       .withMessage((_, { req }) => req.t("invalidDescription")),
     check("shortDescription")
-      .isLength({ min: 100 })
+      .isLength({ max: 100 })
       .withMessage((_, { req }) => req.t("invalidShortDescription")),
     passport.authenticate("jwt", { session: false }),
   ],

@@ -38,7 +38,7 @@ model Company {
   entityType EntityType
   image String?
   description String
-  shortDescription String
+  shortDescription String?
   contacts Json?
   socials Json?
   createdAt DateTime @default(now())
