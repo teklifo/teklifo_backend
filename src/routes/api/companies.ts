@@ -153,6 +153,7 @@ router.get("/:id", async (req, res) => {
   try {
     const company = await prisma.company.findUnique({
       where: { id: parseInt(id) },
+      include: { users: true },
     });
 
     // Company not found
