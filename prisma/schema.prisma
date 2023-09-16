@@ -19,7 +19,7 @@ model User {
   id Int @id @default(autoincrement())
   name String
   email String @unique
-  image String?
+  image Json?
   password String
   isActive Boolean @default(false)
   activationToken String? @unique
@@ -36,7 +36,7 @@ model Company {
   name String @unique
   tin String @unique
   entityType EntityType
-  image String?
+  image Json?
   description String
   shortDescription String?
   contacts Json?
