@@ -219,6 +219,7 @@ router.put(
         });
       }
 
+      // Find company
       const company = await prisma.company.findUnique({
         where: { id: parseInt(id) },
         include: { users: true },
