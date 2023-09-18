@@ -4,13 +4,15 @@ import i18next from "i18next";
 import Backend from "i18next-fs-backend";
 import middleware from "i18next-http-middleware";
 import cors from "cors";
+import schedule from "node-schedule";
 import "./config/passport";
 import { userRouter } from "./routes/api/users";
 import { authRouter } from "./routes/api/auth";
 import { companyRouter } from "./routes/api/companies";
 import { commerce_ml } from "./routes/api/commerce_ml";
-import logger from "./utils/logger";
-import { PORT } from "./utils/secrets";
+import readExchangeFiles from "./utils/readExchangeFiles";
+import logger from "./config/logger";
+import { PORT } from "./config/secrets";
 
 i18next
   .use(Backend)
@@ -35,6 +37,11 @@ const main = async () => {
     app.use("/api/auth", authRouter);
     app.use("/api/companies", companyRouter);
     app.use("/api/commerce_ml", commerce_ml);
+
+    // Read exchange files every 15 minutes
+    schedule.scheduleJob("*/15 * * * *", function () {
+      readExchangeFiles();
+    });
 
     app.listen(PORT, () => {
       logger.info(`Server started on port ${PORT}`);

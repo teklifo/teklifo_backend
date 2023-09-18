@@ -6,8 +6,8 @@ import bcrypt from "bcrypt";
 import randomstring from "randomstring";
 import prisma from "../../config/db";
 import sendEmail from "../../config/nodemailer/sendEmail";
-import { JWT_SECRET, CLIENT_URL } from "../../utils/secrets";
-import logger from "../../utils/logger";
+import { JWT_SECRET, CLIENT_URL } from "../../config/secrets";
+import logger from "../../config/logger";
 
 const router = express.Router();
 

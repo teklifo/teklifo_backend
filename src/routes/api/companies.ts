@@ -4,7 +4,7 @@ import passport from "passport";
 import cloudinary from "../../config/cloudinary";
 import prisma from "../../config/db";
 import getPaginationData from "../../utils/getPaginationData";
-import logger from "../../utils/logger";
+import logger from "../../config/logger";
 
 const router = express.Router();
 

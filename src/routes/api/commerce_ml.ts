@@ -4,8 +4,8 @@ import path from "path";
 import passport from "passport";
 import jwt from "jsonwebtoken";
 import prisma from "../../config/db";
-import { JWT_SECRET } from "../../utils/secrets";
-import logger from "../../utils/logger";
+import { JWT_SECRET } from "../../config/secrets";
+import logger from "../../config/logger";
 
 const router = express.Router();
 
@@ -92,7 +92,7 @@ router.get(
 // @desc   Exchange file upload
 // @access Private
 router.post("/:companyId", async (req, res, next) => {
-  passport.authenticate("jwt-cookie", async (err, user, info) => {
+  passport.authenticate("jwt", async (err, user, info) => {
     // Check if JWT auth succeeded
     const serverError = req.t("serverError");
     if (err) {
@@ -140,7 +140,7 @@ router.post("/:companyId", async (req, res, next) => {
     // Handle request
     if (mode === "file") {
       // Create folder if needed
-      const fullPath = `${process.cwd()}/exchange_files/${companyId}_${filename}`;
+      const fullPath = `${process.cwd()}/exchange_files/${companyId}/${filename}`;
       const folderPath = path.dirname(fullPath);
       if (!(await checkFileExists(folderPath))) {
         await fs.promises.mkdir(folderPath, { recursive: true });

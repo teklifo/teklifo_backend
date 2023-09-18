@@ -1,13 +1,13 @@
 import nodemailer from "nodemailer";
 import emailTemplate from "./emailTemplate";
-import logger from "../../utils/logger";
+import logger from "../logger";
 import {
   EMAIL_SERVER_HOST,
   EMAIL_SERVER_PORT,
   EMAIL_SERVER_USER,
   EMAIL_SERVER_PASSWORD,
   EMAIL_FROM,
-} from "../../utils/secrets";
+} from "../secrets";
 import { EmailType, EmailContextType } from "../../types/types";
 
 interface EmailParametersType {

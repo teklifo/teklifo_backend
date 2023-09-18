@@ -7,7 +7,7 @@ import bcrypt from "bcrypt";
 import randomstring from "randomstring";
 import prisma from "./db";
 import sendEmail from "./nodemailer/sendEmail";
-import { JWT_SECRET, CLIENT_URL } from "../utils/secrets";
+import { JWT_SECRET, CLIENT_URL } from "./secrets";
 
 const LocalStrategy = passportLocal.Strategy;
 const JwtStrategy = passportJwt.Strategy;
@@ -169,42 +169,10 @@ passport.use(
   "jwt",
   new JwtStrategy(
     {
-      jwtFromRequest: extractJwt.fromAuthHeaderWithScheme("JWT"),
-      secretOrKey: JWT_SECRET,
-    },
-    async (jwtPayload, done) => {
-      try {
-        const user = await prisma.user.findUnique({
-          where: {
-            id: jwtPayload.id,
-          },
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-            isActive: true,
-            createdAt: true,
-            updatedAt: true,
-            companies: true,
-          },
-        });
-        if (!user) {
-          return done(null, false, { message: "authorization_denied" });
-        }
-        return done(null, user);
-      } catch (error) {
-        return done(error);
-      }
-    }
-  )
-);
-
-passport.use(
-  "jwt-cookie",
-  new JwtStrategy(
-    {
-      jwtFromRequest: cookieExtractor,
+      jwtFromRequest: extractJwt.fromExtractors([
+        extractJwt.fromAuthHeaderWithScheme("JWT"),
+        cookieExtractor,
+      ]),
       secretOrKey: JWT_SECRET,
     },
     async (jwtPayload, done) => {
