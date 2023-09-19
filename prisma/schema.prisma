@@ -44,6 +44,7 @@ model Company {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   users UsersAndCompanies[]
+  items Items[]
 }
 
 model UsersAndCompanies {
@@ -52,4 +53,21 @@ model UsersAndCompanies {
   company Company @relation(fields: [companyId], references: [id])
   companyId Int
    @@id([userId, companyId])
+}
+
+model Items {
+  id Int @id @default(autoincrement())
+  externalId String @unique
+  number String
+  barcode String
+  name String
+  unit String
+  vat String
+  sellPrice Int
+  inStock Int
+  images String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  company Company @relation(fields: [companyId], references: [id])
+  companyId Int
 }
