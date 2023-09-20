@@ -44,7 +44,7 @@ model Company {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   users UsersAndCompanies[]
-  items Items[]
+  products Product[]
 }
 
 model UsersAndCompanies {
@@ -55,9 +55,10 @@ model UsersAndCompanies {
    @@id([userId, companyId])
 }
 
-model Items {
+model Product {
   id Int @id @default(autoincrement())
   externalId String @unique
+  characteristicId String
   number String
   barcode String
   name String

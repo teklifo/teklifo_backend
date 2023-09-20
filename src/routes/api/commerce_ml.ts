@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import passport from "passport";
 import jwt from "jsonwebtoken";
+import checkFileExists from "../../utils/checkFileExists";
 import prisma from "../../config/db";
 import { JWT_SECRET } from "../../config/secrets";
 import logger from "../../config/logger";
@@ -17,17 +18,6 @@ const getResponseMessage = (
   return `${result}${token ? `\nJWT\n${token}` : ""}${
     error ? `\n${error}` : ""
   }`;
-};
-
-const checkFileExists = async (file: string) => {
-  return fs.promises
-    .access(file, fs.constants.F_OK)
-    .then(() => {
-      return true;
-    })
-    .catch(() => {
-      return false;
-    });
 };
 
 // @route  GET api/commerce_ml

@@ -31,3 +31,33 @@ declare global {
     }
   }
 }
+
+export type CommerceML_СтавкаНалога = {
+  СтавкаНалога: [
+    {
+      Наименование: string[];
+      Ставка: string[];
+    }
+  ];
+};
+
+export type CommerceML_Группы = {
+  Ид: string[];
+};
+
+export type CommerceML_Товары = {
+  Товар: {
+    Ид: string[];
+    ШтрихКод?: string[];
+    Артикул: string[];
+    Наименование: string[];
+    БазоваяЕдиница: { _: string }[];
+    СтавкиНалогов?: CommerceML_СтавкаНалога[];
+    Группы: CommerceML_Группа[];
+    Картинка?: string[];
+  }[];
+};
+
+export type CommerceML_Каталог = {
+  Товары: CommerceML_Товары[];
+};
