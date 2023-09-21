@@ -66,7 +66,7 @@ model Product {
   vat String
   sellPrice Int
   inStock Int
-  images String[]
+  images Json[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   company Company @relation(fields: [companyId], references: [id])

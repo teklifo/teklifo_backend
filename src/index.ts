@@ -40,9 +40,8 @@ const main = async () => {
 
     // Read exchange files every 15 minutes
     schedule.scheduleJob("*/15 * * * *", function () {
-      // readExchangeFiles();
+      readExchangeFiles();
     });
-    readExchangeFiles();
 
     app.listen(PORT, () => {
       logger.info(`Server started on port ${PORT}`);

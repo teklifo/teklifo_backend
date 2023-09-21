@@ -3,10 +3,19 @@ import path from "path";
 import xml2js from "xml2js";
 import checkFileExists from "./checkFileExists";
 import prisma from "../config/db";
+import cloudinary from "../config/cloudinary";
 import logger from "../config/logger";
-import { CommerceML_Каталог } from "../types/types";
+import {
+  ProductType,
+  CommerceML_Import,
+  CommerceML_Offers,
+} from "../types/types";
 
-const readExchangeData = async (importXml: string, offersXml: string) => {
+const readExchangeData = async (
+  companyId: number,
+  importXml: string,
+  offersXml: string
+) => {
   const parser = new xml2js.Parser();
 
   try {
@@ -16,26 +25,42 @@ const readExchangeData = async (importXml: string, offersXml: string) => {
       parser.parseStringPromise(offersXml),
     ]);
 
-    const importData = promises[0];
-    const offersData = promises[1];
+    const importData = promises[0] as CommerceML_Import;
+    const offersData = promises[1] as CommerceML_Offers;
 
-    const externalIds: string[] = [];
-    const productsData: any[] = [];
+    const productsData: ProductType[] = [];
 
     // Map through catalogs
     const catalogs = importData.КоммерческаяИнформация.Каталог;
-    catalogs.forEach((catalog: CommerceML_Каталог) => {
-      const products = catalog.Товары;
 
-      products.forEach((productElement) => {
-        const product = productElement.Товар[0];
+    const offers =
+      offersData.КоммерческаяИнформация.ПакетПредложений[0].Предложения[0]
+        .Предложение;
 
+    catalogs.forEach((catalog) => {
+      const products = catalog.Товары[0].Товар;
+
+      products.forEach((product) => {
+        // Find product offer by id
+        const productOffer = offers.find(
+          (offer) => offer.Ид[0] === product.Ид[0]
+        );
+        if (!productOffer) return;
+
+        // Generate externalId and characteristicId
         const ids = product.Ид[0].split("#");
-        const externalId = ids[0];
+        const externalId = `${companyId}#${ids[0]}`;
         let characteristicId = "";
         if (ids.length > 1) characteristicId = ids[1];
 
+        // Read images path
+        const images: string[] = [];
+        if (product.Картинка && product.Картинка.length > 0) {
+          images.push(product.Картинка[0]);
+        }
+
         productsData.push({
+          companyId: companyId,
           externalId,
           characteristicId,
           number: product.Артикул[0],
@@ -46,24 +71,52 @@ const readExchangeData = async (importXml: string, offersXml: string) => {
             product.СтавкиНалогов && product.СтавкиНалогов.length > 0
               ? product.СтавкиНалогов[0].СтавкаНалога[0].Ставка[0]
               : "",
-          images: [],
+          sellPrice: parseInt(productOffer.Цены[0].Цена[0].ЦенаЗаЕдиницу[0]),
+          inStock: parseInt(productOffer.Количество[0]),
+          images: images,
         });
-
-        externalIds.push(externalId);
       });
     });
 
-    console.log(productsData);
+    // Upsert products data
+    await Promise.all(
+      productsData.map(async (productData) => {
+        const images = productData.images;
+        productData.images = [];
 
-    // Find what products do already exit
-    const existingProducts = await prisma.product.findMany({
-      where: {
-        externalId: { in: externalIds },
-      },
-      select: {
-        id: true,
-      },
-    });
+        await prisma.product.upsert({
+          where: {
+            externalId: productData.externalId,
+          },
+          create: productData,
+          update: productData,
+        });
+
+        // Upload images after successful upsert
+        const results = await Promise.all(
+          images.map(async (image) => {
+            const path = `${process.cwd()}/exchange_files/${companyId}/${image}`;
+            return await cloudinary.uploader.upload(path);
+          })
+        );
+
+        const uploadedImages = results.map((result) => {
+          return {
+            id: result.public_id,
+            url: result.secure_url,
+          };
+        });
+
+        await prisma.product.update({
+          where: {
+            externalId: productData.externalId,
+          },
+          data: {
+            images: uploadedImages,
+          },
+        });
+      })
+    );
   } catch (error) {
     logger.error("Error reading exchange files:", error);
   }
@@ -89,6 +142,17 @@ const readExchangeFiles = () => {
     subfolders.forEach(async (subfolder) => {
       const subfolderPath = `${folderPath}/${subfolder}`;
 
+      // Find a company by id.
+      const companyId = parseInt(subfolder);
+      const company = await prisma.company.findUnique({
+        where: { id: companyId },
+        select: { id: true },
+      });
+      if (!company) {
+        // No company was found
+        return;
+      }
+
       // Check that exchange files do exists
       const filesExist =
         (await checkFileExists(`${subfolderPath}/import.xml`)) &&
@@ -103,7 +167,7 @@ const readExchangeFiles = () => {
         fs.promises.readFile(`${subfolderPath}/offers.xml`, "utf8"),
       ]);
 
-      readExchangeData(data[0], data[1]);
+      readExchangeData(companyId, data[0], data[1]);
     });
   });
 };

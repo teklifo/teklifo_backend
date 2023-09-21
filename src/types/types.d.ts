@@ -32,6 +32,20 @@ declare global {
   }
 }
 
+export type ProductType = {
+  externalId: string;
+  characteristicId: string;
+  number: string;
+  barcode: string;
+  name: string;
+  unit: string;
+  vat: string;
+  sellPrice: number;
+  inStock: number;
+  images: string[];
+  companyId: number;
+};
+
 export type CommerceML_СтавкаНалога = {
   СтавкаНалога: [
     {
@@ -60,4 +74,39 @@ export type CommerceML_Товары = {
 
 export type CommerceML_Каталог = {
   Товары: CommerceML_Товары[];
+};
+
+export type CommerceML_Import = {
+  КоммерческаяИнформация: {
+    Каталог: CommerceML_Каталог[];
+  };
+};
+
+export type CommerceML_Цена = {
+  Цена: {
+    ЦенаЗаЕдиницу: string[];
+    Валюта: string[];
+  }[];
+};
+
+export type CommerceML_Предложения = {
+  Предложение: {
+    Ид: string[];
+    ШтрихКод?: string[];
+    Артикул: string[];
+    Наименование: string[];
+    БазоваяЕдиница: { _: string }[];
+    Цены: CommerceML_Цена[];
+    Количество: string[];
+  }[];
+};
+
+export type CommerceML_ПакетПредложений = {
+  Предложения: CommerceML_Предложения[];
+};
+
+export type CommerceML_Offers = {
+  КоммерческаяИнформация: {
+    ПакетПредложений: CommerceML_ПакетПредложений[];
+  };
 };
