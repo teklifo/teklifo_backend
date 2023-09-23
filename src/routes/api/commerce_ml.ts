@@ -27,54 +27,51 @@ router.get(
   "/:companyId",
   async (req: Request, res: Response, next: NextFunction) => {
     const mode = req.query.mode ?? "init";
+    const { companyId } = req.params;
 
-    if (mode === "init") {
-      return res.send("zip=no\nfile_limit=2000000");
-    } else if (mode === "checkauth") {
-      const { companyId } = req.params;
+    passport.authenticate("basic", async (err, user) => {
+      if (err) {
+        return res
+          .status(400)
+          .send(getResponseMessage("error", undefined, err.message));
+      }
 
-      return passport.authenticate("basic", async (err, user) => {
-        if (err) {
-          return res
-            .status(400)
-            .send(getResponseMessage("error", undefined, err.message));
-        }
+      // Find company
+      const company = await prisma.company.findUnique({
+        where: { id: parseInt(companyId) },
+        include: { users: true },
+      });
 
-        // Find company
-        const company = await prisma.company.findUnique({
-          where: { id: parseInt(companyId) },
-          include: { users: true },
-        });
+      // Company not found
+      if (!company) {
+        const invalidCompanyId = req.t("invalidCompanyId");
+        return res
+          .status(404)
+          .send(getResponseMessage("error", undefined, invalidCompanyId));
+      }
 
-        // Company not found
-        if (!company) {
-          const invalidCompanyId = req.t("invalidCompanyId");
-          return res
-            .status(404)
-            .send(getResponseMessage("error", undefined, invalidCompanyId));
-        }
+      // Check that user is a member of a company
+      const member = company.users.find((e) => e.userId === user.id);
+      if (!member) {
+        const userIsNotAMember = req.t("userIsNotAMember");
+        return res
+          .status(404)
+          .send(getResponseMessage("error", undefined, userIsNotAMember));
+      }
 
-        // Check that user is a member of a company
-        const member = company.users.find((e) => e.userId === user.id);
-        if (!member) {
-          const userIsNotAMember = req.t("userIsNotAMember");
-          return res
-            .status(404)
-            .send(getResponseMessage("error", undefined, userIsNotAMember));
-        }
-
+      if (mode === "init") {
+        return res.send("zip=no\nfile_limit=2000000");
+      } else if (mode === "checkauth") {
         const token = jwt.sign(user, JWT_SECRET);
         return res.send(getResponseMessage("success", token));
-      })(req, res, next);
-    } else if (mode === "import") {
-      return res.send(
-        getResponseMessage("error", undefined, "Under development")
-      );
-    } else {
-      return res
-        .status(400)
-        .send(getResponseMessage("error", undefined, `Wrong mode ${mode}`));
-    }
+      } else if (mode === "import") {
+        return res.send(getResponseMessage("success"));
+      } else {
+        return res
+          .status(400)
+          .send(getResponseMessage("error", undefined, `Wrong mode ${mode}`));
+      }
+    })(req, res, next);
   }
 );
 
@@ -161,4 +158,4 @@ router.post("/:companyId", async (req, res, next) => {
   })(req, res, next);
 });
 
-export { router as commerce_ml };
+export { router as commerceMlRouter };

@@ -16,6 +16,7 @@ export type ValidationExceptionType = {
 type ImageType = {
   id: string;
   url: string;
+  commerceMl?: boolean;
 };
 
 declare global {
@@ -34,6 +35,7 @@ declare global {
 
 export type ProductType = {
   externalId: string;
+  productId: string;
   characteristicId: string;
   number: string;
   barcode: string;
@@ -42,7 +44,7 @@ export type ProductType = {
   vat: string;
   sellPrice: number;
   inStock: number;
-  images: string[];
+  images?: string[];
   companyId: number;
 };
 
@@ -74,6 +76,7 @@ export type CommerceML_Товары = {
 
 export type CommerceML_Каталог = {
   Товары: CommerceML_Товары[];
+  СодержитТолькоИзменения: string[];
 };
 
 export type CommerceML_Import = {

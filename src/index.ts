@@ -9,7 +9,8 @@ import "./config/passport";
 import { userRouter } from "./routes/api/users";
 import { authRouter } from "./routes/api/auth";
 import { companyRouter } from "./routes/api/companies";
-import { commerce_ml } from "./routes/api/commerce_ml";
+import { commerceMlRouter } from "./routes/api/commerce_ml";
+import { productRouter } from "./routes/api/products";
 import readExchangeFiles from "./utils/readExchangeFiles";
 import logger from "./config/logger";
 import { PORT } from "./config/secrets";
@@ -36,7 +37,8 @@ const main = async () => {
     app.use("/api/users", userRouter);
     app.use("/api/auth", authRouter);
     app.use("/api/companies", companyRouter);
-    app.use("/api/commerce_ml", commerce_ml);
+    app.use("/api/commerce_ml", commerceMlRouter);
+    app.use("/api/products", productRouter);
 
     // Read exchange files every 15 minutes
     schedule.scheduleJob("*/15 * * * *", function () {

@@ -7,6 +7,7 @@ import cloudinary from "../config/cloudinary";
 import logger from "../config/logger";
 import {
   ProductType,
+  ImageType,
   CommerceML_Import,
   CommerceML_Offers,
 } from "../types/types";
@@ -21,17 +22,19 @@ const readExchangeData = async (
   try {
     // Retrieve data from plain xml
     const promises = await Promise.all([
-      parser.parseStringPromise(importXml),
-      parser.parseStringPromise(offersXml),
+      await parser.parseStringPromise(importXml),
+      await parser.parseStringPromise(offersXml),
     ]);
 
     const importData = promises[0] as CommerceML_Import;
     const offersData = promises[1] as CommerceML_Offers;
 
+    const externalIds: string[] = [];
     const productsData: ProductType[] = [];
 
     // Map through catalogs
     const catalogs = importData.КоммерческаяИнформация.Каталог;
+    const onlyChanges = catalogs[0].СодержитТолькоИзменения[0] === "true";
 
     const offers =
       offersData.КоммерческаяИнформация.ПакетПредложений[0].Предложения[0]
@@ -49,9 +52,10 @@ const readExchangeData = async (
 
         // Generate externalId and characteristicId
         const ids = product.Ид[0].split("#");
-        const externalId = `${companyId}#${ids[0]}`;
+        const productId = `${companyId}#${ids[0]}`;
         let characteristicId = "";
         if (ids.length > 1) characteristicId = ids[1];
+        const externalId = productId + characteristicId;
 
         // Read images path
         const images: string[] = [];
@@ -62,6 +66,7 @@ const readExchangeData = async (
         productsData.push({
           companyId: companyId,
           externalId,
+          productId,
           characteristicId,
           number: product.Артикул[0],
           barcode: product.ШтрихКод ? product.ШтрихКод[0] : "",
@@ -75,14 +80,27 @@ const readExchangeData = async (
           inStock: parseInt(productOffer.Количество[0]),
           images: images,
         });
+
+        externalIds.push(externalId);
       });
+    });
+
+    // Find what products do already exit
+    const existingProducts = await prisma.product.findMany({
+      where: {
+        externalId: { in: externalIds },
+      },
+      select: {
+        externalId: true,
+        images: true,
+      },
     });
 
     // Upsert products data
     await Promise.all(
       productsData.map(async (productData) => {
         const images = productData.images;
-        productData.images = [];
+        productData.images = undefined;
 
         await prisma.product.upsert({
           where: {
@@ -92,7 +110,29 @@ const readExchangeData = async (
           update: productData,
         });
 
-        // Upload images after successful upsert
+        // Images will be uploaded in two cases:
+        // 1. Product didn't have an commerceMl image before
+        // 2. This exchange file contains only changes
+        const existingProduct = existingProducts.find(
+          (e) => e.externalId === productData.externalId
+        );
+
+        const existingCommerceMlImages = (
+          existingProduct?.images as ImageType[]
+        ).filter((i) => i.commerceMl === true);
+
+        if (!images || (existingCommerceMlImages.length > 0 && !onlyChanges)) {
+          return;
+        }
+
+        // Delete old images
+        await Promise.all(
+          existingCommerceMlImages.map(async (i) => {
+            await cloudinary.uploader.destroy(i.id);
+          })
+        );
+
+        // Upload new images
         const results = await Promise.all(
           images.map(async (image) => {
             const path = `${process.cwd()}/exchange_files/${companyId}/${image}`;
@@ -104,9 +144,11 @@ const readExchangeData = async (
           return {
             id: result.public_id,
             url: result.secure_url,
+            commerceMl: true,
           };
         });
 
+        // Update product with new images
         await prisma.product.update({
           where: {
             externalId: productData.externalId,
@@ -118,7 +160,7 @@ const readExchangeData = async (
       })
     );
   } catch (error) {
-    logger.error("Error reading exchange files:", error);
+    throw error;
   }
 };
 
@@ -139,36 +181,43 @@ const readExchangeFiles = () => {
     });
 
     // Map all subfolders.
-    subfolders.forEach(async (subfolder) => {
-      const subfolderPath = `${folderPath}/${subfolder}`;
+    Promise.all(
+      subfolders.map(async (subfolder) => {
+        const subfolderPath = `${folderPath}/${subfolder}`;
 
-      // Find a company by id.
-      const companyId = parseInt(subfolder);
-      const company = await prisma.company.findUnique({
-        where: { id: companyId },
-        select: { id: true },
-      });
-      if (!company) {
-        // No company was found
-        return;
-      }
+        // Find a company by id.
+        const companyId = parseInt(subfolder);
+        const company = await prisma.company.findUnique({
+          where: { id: companyId },
+          select: { id: true },
+        });
+        if (!company) {
+          // No company was found
+          return;
+        }
 
-      // Check that exchange files do exists
-      const filesExist =
-        (await checkFileExists(`${subfolderPath}/import.xml`)) &&
-        (await checkFileExists(`${subfolderPath}/offers.xml`));
-      if (!filesExist) {
-        return;
-      }
+        // Check that exchange files do exists
+        const filesExist =
+          (await checkFileExists(`${subfolderPath}/import.xml`)) &&
+          (await checkFileExists(`${subfolderPath}/offers.xml`));
+        if (!filesExist) {
+          return;
+        }
 
-      // Read import.xml & offers.xml
-      const data = await Promise.all([
-        fs.promises.readFile(`${subfolderPath}/import.xml`, "utf8"),
-        fs.promises.readFile(`${subfolderPath}/offers.xml`, "utf8"),
-      ]);
+        // Read import.xml & offers.xml
+        const data = await Promise.all([
+          await fs.promises.readFile(`${subfolderPath}/import.xml`, "utf8"),
+          await fs.promises.readFile(`${subfolderPath}/offers.xml`, "utf8"),
+        ]);
 
-      readExchangeData(companyId, data[0], data[1]);
-    });
+        try {
+          await readExchangeData(companyId, data[0], data[1]);
+          await fs.promises.rm(subfolderPath, { recursive: true, force: true });
+        } catch (error) {
+          logger.error("Error reading exchange files:", error);
+        }
+      })
+    );
   });
 };
 

@@ -58,6 +58,7 @@ model UsersAndCompanies {
 model Product {
   id Int @id @default(autoincrement())
   externalId String @unique
+  productId String
   characteristicId String
   number String
   barcode String
