@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
 import xml2js from "xml2js";
-import checkFileExists from "./checkFileExists";
 import prisma from "../config/db";
 import cloudinary from "../config/cloudinary";
 import logger from "../config/logger";
@@ -34,7 +33,9 @@ const readExchangeData = async (
 
     // Map through catalogs
     const catalogs = importData.КоммерческаяИнформация.Каталог;
-    const onlyChanges = catalogs[0].СодержитТолькоИзменения[0] === "true";
+    const onlyChanges = catalogs[0].СодержитТолькоИзменения
+      ? catalogs[0].СодержитТолькоИзменения[0] === "true"
+      : catalogs[0].$?.СодержитТолькоИзменения === "true";
 
     const offers =
       offersData.КоммерческаяИнформация.ПакетПредложений[0].Предложения[0]
@@ -60,7 +61,9 @@ const readExchangeData = async (
         // Read images path
         const images: string[] = [];
         if (product.Картинка && product.Картинка.length > 0) {
-          images.push(product.Картинка[0]);
+          product.Картинка.map((e) => {
+            images.push(e);
+          });
         }
 
         productsData.push({
@@ -71,7 +74,7 @@ const readExchangeData = async (
           number: product.Артикул[0],
           barcode: product.ШтрихКод ? product.ШтрихКод[0] : "",
           name: product.Наименование[0],
-          unit: product.БазоваяЕдиница[0]._,
+          unit: product.БазоваяЕдиница[0].$.НаименованиеПолное,
           vat:
             product.СтавкиНалогов && product.СтавкиНалогов.length > 0
               ? product.СтавкиНалогов[0].СтавкаНалога[0].Ставка[0]
@@ -118,7 +121,7 @@ const readExchangeData = async (
         );
 
         const existingCommerceMlImages = (
-          existingProduct?.images as ImageType[]
+          (existingProduct?.images ?? []) as ImageType[]
         ).filter((i) => i.commerceMl === true);
 
         if (!images || (existingCommerceMlImages.length > 0 && !onlyChanges)) {
@@ -197,25 +200,35 @@ const readExchangeFiles = () => {
         }
 
         // Check that exchange files do exists
-        const filesExist =
-          (await checkFileExists(`${subfolderPath}/import.xml`)) &&
-          (await checkFileExists(`${subfolderPath}/offers.xml`));
-        if (!filesExist) {
-          return;
+        const exchangeFiles = await fs.promises.readdir(subfolderPath);
+        const importFile = exchangeFiles.find(
+          (e) => e.startsWith("import") && path.extname(e) === ".xml"
+        );
+        const offersFile = exchangeFiles.find(
+          (e) => e.startsWith("offers") && path.extname(e) === ".xml"
+        );
+
+        if (importFile && offersFile) {
+          // Read import.xml & offers.xml
+          const data = await Promise.all([
+            await fs.promises.readFile(
+              `${subfolderPath}/${importFile}`,
+              "utf8"
+            ),
+            await fs.promises.readFile(
+              `${subfolderPath}/${offersFile}`,
+              "utf8"
+            ),
+          ]);
+
+          try {
+            await readExchangeData(companyId, data[0], data[1]);
+          } catch (error) {
+            logger.error(`Error reading exchange files: ${error}`);
+          }
         }
 
-        // Read import.xml & offers.xml
-        const data = await Promise.all([
-          await fs.promises.readFile(`${subfolderPath}/import.xml`, "utf8"),
-          await fs.promises.readFile(`${subfolderPath}/offers.xml`, "utf8"),
-        ]);
-
-        try {
-          await readExchangeData(companyId, data[0], data[1]);
-          await fs.promises.rm(subfolderPath, { recursive: true, force: true });
-        } catch (error) {
-          logger.error("Error reading exchange files:", error);
-        }
+        await fs.promises.rm(subfolderPath, { recursive: true, force: true });
       })
     );
   });

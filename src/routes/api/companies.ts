@@ -65,17 +65,30 @@ router.post(
         socials,
       } = req.body;
 
-      // Check if tin is unique
-      const existingCompany = await prisma.company.findUnique({
+      // Check if tin and name are unique
+      const errors = [];
+
+      // Unique name
+      const existingCompanyByName = await prisma.company.findUnique({
+        where: { name },
+      });
+      if (existingCompanyByName)
+        errors.push({
+          msg: req.t("nameIsNotUnique"),
+        });
+
+      // Unique tin
+      const existingCompanyByTin = await prisma.company.findUnique({
         where: { tin },
       });
-      if (existingCompany) {
+      if (existingCompanyByTin)
+        errors.push({
+          msg: req.t("tinIsNotUnique"),
+        });
+
+      if (errors.length > 0) {
         return res.status(400).json({
-          errors: [
-            {
-              msg: req.t("tinIsNotUnique"),
-            },
-          ],
+          errors: errors,
         });
       }
 

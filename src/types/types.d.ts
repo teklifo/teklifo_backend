@@ -67,7 +67,7 @@ export type CommerceML_Товары = {
     ШтрихКод?: string[];
     Артикул: string[];
     Наименование: string[];
-    БазоваяЕдиница: { _: string }[];
+    БазоваяЕдиница: { $: { НаименованиеПолное: string } }[];
     СтавкиНалогов?: CommerceML_СтавкаНалога[];
     Группы: CommerceML_Группа[];
     Картинка?: string[];
@@ -76,7 +76,10 @@ export type CommerceML_Товары = {
 
 export type CommerceML_Каталог = {
   Товары: CommerceML_Товары[];
-  СодержитТолькоИзменения: string[];
+  $?: {
+    СодержитТолькоИзменения: string;
+  };
+  СодержитТолькоИзменения?: string[];
 };
 
 export type CommerceML_Import = {
