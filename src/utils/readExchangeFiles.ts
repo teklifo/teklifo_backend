@@ -116,6 +116,7 @@ const readExchangeData = async (
         // Images will be uploaded in two cases:
         // 1. Product didn't have an commerceMl image before
         // 2. This exchange file contains only changes
+        // Also characteristicId must be empty
         const existingProduct = existingProducts.find(
           (e) => e.externalId === productData.externalId
         );
@@ -124,7 +125,11 @@ const readExchangeData = async (
           (existingProduct?.images ?? []) as ImageType[]
         ).filter((i) => i.commerceMl === true);
 
-        if (!images || (existingCommerceMlImages.length > 0 && !onlyChanges)) {
+        if (
+          !images ||
+          (existingCommerceMlImages.length > 0 && !onlyChanges) ||
+          productData.characteristicId
+        ) {
           return;
         }
 
@@ -199,30 +204,37 @@ const readExchangeFiles = () => {
           return;
         }
 
-        // Check that exchange files do exists
+        // Find import files
         const exchangeFiles = await fs.promises.readdir(subfolderPath);
-        const importFile = exchangeFiles.find(
+        const importFiles = exchangeFiles.filter(
           (e) => e.startsWith("import") && path.extname(e) === ".xml"
         );
-        const offersFile = exchangeFiles.find(
-          (e) => e.startsWith("offers") && path.extname(e) === ".xml"
-        );
 
-        if (importFile && offersFile) {
-          // Read import.xml & offers.xml
-          const data = await Promise.all([
-            await fs.promises.readFile(
-              `${subfolderPath}/${importFile}`,
-              "utf8"
-            ),
-            await fs.promises.readFile(
-              `${subfolderPath}/${offersFile}`,
-              "utf8"
-            ),
-          ]);
-
+        if (importFiles.length > 0) {
           try {
-            await readExchangeData(companyId, data[0], data[1]);
+            await Promise.all(
+              importFiles.map(async (importFile) => {
+                // For each 'import' files there must be an 'offers' file
+                const offersFile = exchangeFiles.find(
+                  (e) => e === importFile.replace("import", "offers")
+                );
+                if (!offersFile) return;
+
+                // Read import.xml & offers.xml
+                const data = await Promise.all([
+                  await fs.promises.readFile(
+                    `${subfolderPath}/${importFile}`,
+                    "utf8"
+                  ),
+                  await fs.promises.readFile(
+                    `${subfolderPath}/${offersFile}`,
+                    "utf8"
+                  ),
+                ]);
+
+                await readExchangeData(companyId, data[0], data[1]);
+              })
+            );
           } catch (error) {
             logger.error(`Error reading exchange files: ${error}`);
           }
