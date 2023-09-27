@@ -3,7 +3,7 @@ import path from "path";
 import xml2js from "xml2js";
 import prisma from "../config/db";
 import cloudinary from "../config/cloudinary";
-import logger from "../config/logger";
+import checkFileExists from "../utils/checkFileExists";
 import {
   ProductType,
   ImageType,
@@ -172,78 +172,53 @@ const readExchangeData = async (
   }
 };
 
-const readExchangeFiles = () => {
-  const folderPath = `${process.cwd()}/exchange_files/`;
+const readExchangeFiles = async (companyId: number) => {
+  const folderPath = `${process.cwd()}/exchange_files/${companyId}`;
 
-  // Read content of an exchange folder.
-  fs.readdir(folderPath, (err, files) => {
-    if (err) {
-      logger.error("Error reading folder:", err);
-      return;
+  try {
+    // Find import files
+    const exchangeFiles = await fs.promises.readdir(folderPath);
+    const importFiles = exchangeFiles.filter(
+      (e) => e.startsWith("import") && path.extname(e) === ".xml"
+    );
+
+    let deleteFolder = false;
+
+    if (importFiles.length > 0) {
+      await Promise.all(
+        importFiles.map(async (importFile) => {
+          // For each 'import' files there must be an 'offers' file
+          const offersFile = exchangeFiles.find((e) => {
+            return e === importFile.replace("import", "offers");
+          });
+          if (!offersFile) return;
+
+          // Create 'progress' folder.
+          const progressPath = `${process.cwd()}/exchange_files/${companyId}/progress`;
+          const inProgress = await checkFileExists(progressPath);
+          if (!inProgress) {
+            await fs.promises.mkdir(progressPath);
+            deleteFolder = true;
+          }
+
+          // Read import.xml & offers.xml
+          const data = await Promise.all([
+            await fs.promises.readFile(`${folderPath}/${importFile}`, "utf8"),
+            await fs.promises.readFile(`${folderPath}/${offersFile}`, "utf8"),
+          ]);
+
+          await readExchangeData(companyId, data[0], data[1]);
+        })
+      );
     }
 
-    // Read all subfolders. Each folder represents a different company.
-    const subfolders = files.filter((file) => {
-      const filePath = path.join(folderPath, file);
-      return fs.statSync(filePath).isDirectory();
-    });
-
-    // Map all subfolders.
-    Promise.all(
-      subfolders.map(async (subfolder) => {
-        const subfolderPath = `${folderPath}/${subfolder}`;
-
-        // Find a company by id.
-        const companyId = parseInt(subfolder);
-        const company = await prisma.company.findUnique({
-          where: { id: companyId },
-          select: { id: true },
-        });
-        if (!company) {
-          // No company was found
-          return;
-        }
-
-        // Find import files
-        const exchangeFiles = await fs.promises.readdir(subfolderPath);
-        const importFiles = exchangeFiles.filter(
-          (e) => e.startsWith("import") && path.extname(e) === ".xml"
-        );
-
-        if (importFiles.length > 0) {
-          try {
-            await Promise.all(
-              importFiles.map(async (importFile) => {
-                // For each 'import' files there must be an 'offers' file
-                const offersFile = exchangeFiles.find(
-                  (e) => e === importFile.replace("import", "offers")
-                );
-                if (!offersFile) return;
-
-                // Read import.xml & offers.xml
-                const data = await Promise.all([
-                  await fs.promises.readFile(
-                    `${subfolderPath}/${importFile}`,
-                    "utf8"
-                  ),
-                  await fs.promises.readFile(
-                    `${subfolderPath}/${offersFile}`,
-                    "utf8"
-                  ),
-                ]);
-
-                await readExchangeData(companyId, data[0], data[1]);
-              })
-            );
-          } catch (error) {
-            logger.error(`Error reading exchange files: ${error}`);
-          }
-        }
-
-        await fs.promises.rm(subfolderPath, { recursive: true, force: true });
-      })
-    );
-  });
+    if (deleteFolder) {
+      await fs.promises.rm(folderPath, { recursive: true, force: true });
+    }
+  } catch (error) {
+    await fs.promises.rm(folderPath, { recursive: true, force: true });
+    throw error;
+  }
 };
 
 export default readExchangeFiles;

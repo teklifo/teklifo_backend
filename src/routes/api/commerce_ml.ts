@@ -4,6 +4,7 @@ import path from "path";
 import passport from "passport";
 import jwt from "jsonwebtoken";
 import checkFileExists from "../../utils/checkFileExists";
+import readExchangeFiles from "../../utils/readExchangeFiles";
 import prisma from "../../config/db";
 import { JWT_SECRET } from "../../config/secrets";
 import logger from "../../config/logger";
@@ -11,7 +12,7 @@ import logger from "../../config/logger";
 const router = express.Router();
 
 const getResponseMessage = (
-  result: "success" | "error",
+  result: "success" | "error" | "progress",
   token?: string,
   error?: string
 ) => {
@@ -36,7 +37,7 @@ router.get(
           .send(getResponseMessage("error", undefined, err.message));
       }
 
-      // Find company
+      // Find a company
       const company = await prisma.company.findUnique({
         where: { id: parseInt(companyId) },
         include: { users: true },
@@ -60,13 +61,30 @@ router.get(
       }
 
       if (mode === "init") {
+        // Initial parameters
         return res.send("zip=no\nfile_limit=2000000");
       } else if (mode === "checkauth") {
+        // Authentication
         const token = jwt.sign(user, JWT_SECRET);
         return res.send(getResponseMessage("success", token));
       } else if (mode === "import") {
-        return res.send(getResponseMessage("success"));
+        // Read exchange files
+        try {
+          // A foldres called 'progress' indicates that exchange is currently running
+          const progressPath = `${process.cwd()}/exchange_files/${companyId}/progress`;
+          const inProgress = await checkFileExists(progressPath);
+          if (inProgress) {
+            return res.send(getResponseMessage("progress"));
+          }
+          // Start reading
+          await readExchangeFiles(parseInt(companyId));
+          return res.send(getResponseMessage("success"));
+        } catch (error) {
+          logger.error(`Error reading exchange files: ${error}`);
+          return res.status(400).send(getResponseMessage("error"));
+        }
       } else {
+        // Wrong mode parameter
         return res
           .status(400)
           .send(getResponseMessage("error", undefined, `Wrong mode ${mode}`));
