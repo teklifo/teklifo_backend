@@ -34,14 +34,15 @@ declare global {
 }
 
 export type ProductType = {
-  externalId: string;
-  productId: string;
-  characteristicId: string;
+  fullId: string;
   number: string;
+  characteristicId: string;
+  groupId: string;
   barcode: string;
   name: string;
   unit: string;
   vat: string;
+  description: string;
   sellPrice: number;
   inStock: number;
   images?: string[];

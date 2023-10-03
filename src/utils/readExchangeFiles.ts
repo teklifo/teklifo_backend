@@ -28,7 +28,7 @@ const readExchangeData = async (
     const importData = promises[0] as CommerceML_Import;
     const offersData = promises[1] as CommerceML_Offers;
 
-    const externalIds: string[] = [];
+    const fullIds: string[] = [];
     const productsData: ProductType[] = [];
 
     // Map through catalogs
@@ -51,12 +51,14 @@ const readExchangeData = async (
         );
         if (!productOffer) return;
 
-        // Generate externalId and characteristicId
+        // Generate fullId and characteristicId
+        const number = product.Наименование[0];
+
         const ids = product.Ид[0].split("#");
-        const productId = `${companyId}#${ids[0]}`;
+        const groupId = ids[0];
         let characteristicId = "";
         if (ids.length > 1) characteristicId = ids[1];
-        const externalId = productId + characteristicId;
+        const fullId = `${companyId}#${number}#${characteristicId}`;
 
         // Read images path
         const images: string[] = [];
@@ -66,12 +68,14 @@ const readExchangeData = async (
           });
         }
 
+        const description = "";
+
         productsData.push({
           companyId: companyId,
-          externalId,
-          productId,
+          fullId,
+          number,
           characteristicId,
-          number: product.Артикул[0],
+          groupId,
           barcode: product.ШтрихКод ? product.ШтрихКод[0] : "",
           name: product.Наименование[0],
           unit: product.БазоваяЕдиница[0].$.НаименованиеПолное,
@@ -79,22 +83,23 @@ const readExchangeData = async (
             product.СтавкиНалогов && product.СтавкиНалогов.length > 0
               ? product.СтавкиНалогов[0].СтавкаНалога[0].Ставка[0]
               : "",
+          description,
           sellPrice: parseInt(productOffer.Цены[0].Цена[0].ЦенаЗаЕдиницу[0]),
           inStock: parseInt(productOffer.Количество[0]),
           images: images,
         });
 
-        externalIds.push(externalId);
+        fullIds.push(fullId);
       });
     });
 
     // Find what products do already exit
     const existingProducts = await prisma.product.findMany({
       where: {
-        externalId: { in: externalIds },
+        fullId: { in: fullIds },
       },
       select: {
-        externalId: true,
+        fullId: true,
         images: true,
       },
     });
@@ -107,7 +112,7 @@ const readExchangeData = async (
 
         await prisma.product.upsert({
           where: {
-            externalId: productData.externalId,
+            fullId: productData.fullId,
           },
           create: productData,
           update: productData,
@@ -118,7 +123,7 @@ const readExchangeData = async (
         // 2. This exchange file contains only changes
         // Also characteristicId must be empty
         const existingProduct = existingProducts.find(
-          (e) => e.externalId === productData.externalId
+          (e) => e.fullId === productData.fullId
         );
 
         const existingCommerceMlImages = (
@@ -159,7 +164,7 @@ const readExchangeData = async (
         // Update product with new images
         await prisma.product.update({
           where: {
-            externalId: productData.externalId,
+            fullId: productData.fullId,
           },
           data: {
             images: uploadedImages,

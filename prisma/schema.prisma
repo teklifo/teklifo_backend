@@ -57,14 +57,15 @@ model UsersAndCompanies {
 
 model Product {
   id Int @id @default(autoincrement())
-  externalId String @unique
-  productId String
-  characteristicId String
+  fullId String @unique // A unique combination of companyId, number and characteristicId
   number String
+  characteristicId String
+  groupId String // Used to group same products of different characteristics
   barcode String
   name String
   unit String
   vat String
+  description String
   sellPrice Int
   inStock Int
   images Json[]
