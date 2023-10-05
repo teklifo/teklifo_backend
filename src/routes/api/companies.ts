@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import { check, validationResult } from "express-validator";
 import passport from "passport";
+import { Prisma } from "@prisma/client";
 import cloudinary from "../../config/cloudinary";
 import prisma from "../../config/db";
 import getPaginationData from "../../utils/getPaginationData";
@@ -134,14 +135,27 @@ router.get("/", async (req: Request, res: Response) => {
   if (!page || !limit)
     return res.status(400).json({ message: req.t("pageAndlimitAreRequired") });
 
+  // Filters
+  const filters: Prisma.CompanyWhereInput = {};
+  if (req.query.userId)
+    filters.users = {
+      some: {
+        userId: parseInt(req.query.userId.toString(), 10),
+      },
+    };
+
   try {
     const [total, result] = await prisma.$transaction([
       prisma.company.count(),
       prisma.company.findMany({
         take: limit,
         skip: startIndex,
+        where: filters,
         orderBy: {
           name: "desc",
+        },
+        include: {
+          users: true,
         },
       }),
     ]);
@@ -162,7 +176,7 @@ router.get("/", async (req: Request, res: Response) => {
 // @desc  Get single company
 // @access Public
 router.get("/:id", async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.params ?? "0";
 
   try {
     const company = await prisma.company.findUnique({

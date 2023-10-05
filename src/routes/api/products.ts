@@ -1,4 +1,5 @@
 import express, { Request, Response } from "express";
+import { Prisma } from "@prisma/client";
 import prisma from "../../config/db";
 import getPaginationData from "../../utils/getPaginationData";
 import logger from "../../config/logger";
@@ -17,12 +18,18 @@ router.get("/", async (req: Request, res: Response) => {
   if (!page || !limit)
     return res.status(400).json({ message: req.t("pageAndlimitAreRequired") });
 
+  // Filters
+  const filters: Prisma.ProductWhereInput = {};
+  if (req.query.companyId)
+    filters.companyId = parseInt(req.query.companyId.toString(), 10);
+
   try {
     const [total, result] = await prisma.$transaction([
       prisma.product.count(),
       prisma.product.findMany({
         take: limit,
         skip: startIndex,
+        where: filters,
         orderBy: {
           name: "desc",
         },
@@ -45,7 +52,7 @@ router.get("/", async (req: Request, res: Response) => {
 // @desc  Get single product
 // @access Public
 router.get("/:id", async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.params ?? "0";
 
   try {
     const product = await prisma.product.findUnique({
