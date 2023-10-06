@@ -230,7 +230,7 @@ router.put(
       });
     }
 
-    const { id } = req.params;
+    const { id } = req.params ?? "0";
 
     try {
       // Find user
@@ -306,6 +306,97 @@ router.put(
       }
 
       return res.json(updatedCompany);
+    } catch (error) {
+      logger.error(error.message);
+      return res.status(500).send(req.t("serverError"));
+    }
+  }
+);
+
+// @route  DELETE api/companies/:id
+// @desc   Delete company
+// @access Private
+router.delete(
+  "/:id",
+  passport.authenticate("jwt", { session: false }),
+  async (req: Request, res: Response) => {
+    const { id } = req.params ?? "0";
+
+    try {
+      // Find user
+      const userId = req.user?.id;
+      const user = await prisma.user.findUnique({ where: { id: userId } });
+      if (!user || !user.isActive) {
+        return res.status(400).json({
+          errors: [
+            {
+              msg: req.t("userNotFound"),
+            },
+          ],
+        });
+      }
+
+      // Find company
+      const company = await prisma.company.findUnique({
+        where: { id: parseInt(id) },
+        include: { users: true },
+      });
+
+      // Company not found
+      if (!company) {
+        return res
+          .status(404)
+          .json({ errors: [{ msg: req.t("invalidCompanyId") }] });
+      }
+
+      // Check that user is a member of a company
+      const member = company.users.find((e) => e.userId === userId);
+      if (!member) {
+        return res
+          .status(404)
+          .json({ errors: [{ msg: req.t("userIsNotAMember") }] });
+      }
+
+      // Find images of a company's products
+      const products = await prisma.product.findMany({
+        where: {
+          companyId: parseInt(id),
+        },
+        select: {
+          images: true,
+        },
+      });
+
+      // Delete a company
+      await prisma.company.delete({
+        where: {
+          id: parseInt(id),
+        },
+      });
+
+      // Delete company image and all products images
+      const images: string[] = [];
+      products.forEach((product) =>
+        product.images.forEach((image) =>
+          images.push((image as { id: string }).id)
+        )
+      );
+
+      if (company.image) {
+        images.push((company.image as { id: string }).id);
+      }
+
+      try {
+        await Promise.all(
+          images.map(async (image) => {
+            await cloudinary.uploader.destroy(image);
+          })
+        );
+      } catch (error) {
+        logger.error(error);
+      }
+
+      return res.json({ msg: req.t("companyDeleted") });
     } catch (error) {
       logger.error(error.message);
       return res.status(500).send(req.t("serverError"));

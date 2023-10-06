@@ -29,5 +29,6 @@
   "invalidCompanyId": "Təşkilat tapılmadı",
   "userIsNotAMember": "İstifadəçi təşkilatın üzvü deyil",
   "externalIdIsNotUnique": "Xarici identifikatorlar unikal deyil",
-  "pageAndlimitAreRequired": "Page və limit parametrləri göstərilmək lazımdır"
+  "pageAndlimitAreRequired": "Page və limit parametrləri göstərilmək lazımdır",
+  "companyDeleted": "Təşkilat və onun malları uğurla silindi"
 }

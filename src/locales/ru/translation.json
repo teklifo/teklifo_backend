@@ -29,5 +29,6 @@
   "invalidCompanyId": "Организация не найдена",
   "userIsNotAMember": "Пользователь не является членом организации",
   "externalIdIsNotUnique": "Внешние идентификаторы не уникальны",
-  "pageAndlimitAreRequired": "Для корректной работы должны быть указаны параметры page и limit"
+  "pageAndlimitAreRequired": "Для корректной работы должны быть указаны параметры page и limit",
+  "companyDeleted": "Организация и ее товары успешно удалены"
 }
