@@ -52,7 +52,7 @@ const readExchangeData = async (
         if (!productOffer) return;
 
         // Generate fullId and characteristicId
-        const number = product.Наименование[0];
+        const number = product.Артикул[0];
 
         const ids = product.Ид[0].split("#");
         const groupId = ids[0];
@@ -68,7 +68,7 @@ const readExchangeData = async (
           });
         }
 
-        const description = "";
+        const description = product.Описание ? product.Описание[0] : "";
 
         productsData.push({
           companyId: companyId,
