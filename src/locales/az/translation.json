@@ -30,5 +30,6 @@
   "userIsNotAMember": "İstifadəçi təşkilatın üzvü deyil",
   "externalIdIsNotUnique": "Xarici identifikatorlar unikal deyil",
   "pageAndlimitAreRequired": "Page və limit parametrləri göstərilmək lazımdır",
-  "companyDeleted": "Təşkilat və onun malları uğurla silindi"
+  "companyDeleted": "Təşkilat və onun malları uğurla ləğv olunub",
+  "userDeleted": "İstifadəçi uğurla ləğv olunub"
 }

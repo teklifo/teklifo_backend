@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
 import { check, validationResult } from "express-validator";
 import passport from "passport";
+import bcrypt from "bcrypt";
 import cloudinary from "../../config/cloudinary";
 import prisma from "../../config/db";
 import logger from "../../config/logger";
@@ -108,7 +109,27 @@ router.put(
         });
       }
 
-      const { name, image } = req.body;
+      const { name, image, currentPassword, newPassword } = req.body;
+
+      // New password
+      let hashedPassword = undefined;
+      if (currentPassword && newPassword) {
+        // Check current password
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+          return res.status(400).json({
+            errors: [
+              {
+                msg: req.t("invalidCredentials"),
+              },
+            ],
+          });
+        }
+
+        // Encrypt new password
+        const salt = await bcrypt.genSalt(10);
+        hashedPassword = await bcrypt.hash(newPassword, salt);
+      }
 
       const updatedUser = await prisma.user.update({
         where: {
@@ -117,6 +138,7 @@ router.put(
         data: {
           name,
           image,
+          password: hashedPassword,
         },
       });
 
@@ -130,6 +152,100 @@ router.put(
       }
 
       return res.json(updatedUser);
+    } catch (error) {
+      logger.error(error.message);
+      return res.status(500).send(req.t("serverError"));
+    }
+  }
+);
+
+// @route  DELETE api/users/:id
+// @desc   Delete user
+// @access Private
+router.delete(
+  "/:id",
+  passport.authenticate("jwt", { session: false }),
+  async (req: Request, res: Response) => {
+    const { id } = req.params ?? "0";
+
+    try {
+      // Find user
+      const user = await prisma.user.findUnique({
+        where: { id: parseInt(id) },
+        include: { companies: true },
+      });
+      if (!user || !user.isActive) {
+        return res.status(400).json({
+          errors: [
+            {
+              msg: req.t("userNotFound"),
+            },
+          ],
+        });
+      }
+
+      await Promise.all(
+        user.companies.map(async (element) => {
+          // Find company
+          const company = await prisma.company.findUnique({
+            where: { id: element.companyId },
+            include: { users: true },
+          });
+
+          // Company not found or user is not the only member of a company
+          if (!company || company.users.length === 0) {
+            return;
+          }
+
+          // Find images of a company's products
+          const products = await prisma.product.findMany({
+            where: {
+              companyId: element.companyId,
+            },
+            select: {
+              images: true,
+            },
+          });
+
+          // Delete a company
+          await prisma.company.delete({
+            where: {
+              id: element.companyId,
+            },
+          });
+
+          // Delete company image and all products images
+          const images: string[] = [];
+          products.forEach((product) =>
+            product.images.forEach((image) =>
+              images.push((image as { id: string }).id)
+            )
+          );
+
+          if (company.image) {
+            images.push((company.image as { id: string }).id);
+          }
+
+          try {
+            await Promise.all(
+              images.map(async (image) => {
+                await cloudinary.uploader.destroy(image);
+              })
+            );
+          } catch (error) {
+            logger.error(error);
+          }
+        })
+      );
+
+      // Delete a user
+      await prisma.user.delete({
+        where: {
+          id: parseInt(id),
+        },
+      });
+
+      return res.json({ msg: req.t("userDeleted") });
     } catch (error) {
       logger.error(error.message);
       return res.status(500).send(req.t("serverError"));
