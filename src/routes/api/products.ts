@@ -22,6 +22,18 @@ router.get("/", async (req: Request, res: Response) => {
   const filters: Prisma.ProductWhereInput = {};
   if (req.query.companyId)
     filters.companyId = parseInt(req.query.companyId.toString(), 10);
+  if (req.query.search)
+    filters.OR = [
+      {
+        name: { contains: req.query.search as string, mode: "insensitive" },
+      },
+      {
+        number: { contains: req.query.search as string, mode: "insensitive" },
+      },
+      {
+        barcode: { contains: req.query.search as string, mode: "insensitive" },
+      },
+    ];
 
   try {
     const [total, result] = await prisma.$transaction([

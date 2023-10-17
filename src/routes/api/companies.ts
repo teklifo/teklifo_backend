@@ -143,6 +143,15 @@ router.get("/", async (req: Request, res: Response) => {
         userId: parseInt(req.query.userId.toString(), 10),
       },
     };
+  if (req.query.search)
+    filters.OR = [
+      {
+        name: { contains: req.query.search as string, mode: "insensitive" },
+      },
+      {
+        tin: { contains: req.query.search as string, mode: "insensitive" },
+      },
+    ];
 
   try {
     const [total, result] = await prisma.$transaction([
