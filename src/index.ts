@@ -27,8 +27,10 @@ i18next
   });
 
 const limiter = RateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: 20,
+  windowMs: 60 * 1000, // 1 minute
+  max: 200,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
 });
 
 const app = express();
