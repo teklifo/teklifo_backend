@@ -1,6 +1,8 @@
 import winston from "winston";
 
 const options: winston.LoggerOptions = {
+  format: winston.format.json(),
+  defaultMeta: { service: "user-service" },
   transports: [
     new winston.transports.Console({
       level: process.env.NODE_ENV === "production" ? "error" : "debug",
