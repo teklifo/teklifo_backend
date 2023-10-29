@@ -27,9 +27,17 @@ router.post(
     check("description")
       .isLength({ min: 200 })
       .withMessage((_, { req }) => req.t("invalidDescription")),
+    check("descriptionRu")
+      .isLength({ min: 200 })
+      .withMessage((_, { req }) => req.t("invalidDescriptionRu"))
+      .optional({ nullable: true, checkFalsy: true }),
     check("shortDescription")
       .isLength({ max: 100 })
       .withMessage((_, { req }) => req.t("invalidShortDescription")),
+    check("shortDescriptionRu")
+      .isLength({ max: 100 })
+      .withMessage((_, { req }) => req.t("invalidShortDescriptionRu"))
+      .optional({ nullable: true, checkFalsy: true }),
     passport.authenticate("jwt", { session: false }),
   ],
   async (req: Request, res: Response) => {
@@ -61,7 +69,9 @@ router.post(
         entityType,
         image,
         description,
+        descriptionRu,
         shortDescription,
+        shortDescriptionRu,
         contacts,
         socials,
       } = req.body;
@@ -100,7 +110,9 @@ router.post(
           entityType,
           image,
           description,
+          descriptionRu,
           shortDescription,
+          shortDescriptionRu,
           contacts,
           socials,
           users: {
@@ -225,9 +237,17 @@ router.put(
     check("description")
       .isLength({ min: 200 })
       .withMessage((_, { req }) => req.t("invalidDescription")),
+    check("descriptionRu")
+      .optional({ nullable: true, checkFalsy: true })
+      .isLength({ min: 200 })
+      .withMessage((_, { req }) => req.t("invalidDescriptionRu")),
     check("shortDescription")
       .isLength({ max: 100 })
       .withMessage((_, { req }) => req.t("invalidShortDescription")),
+    check("shortDescriptionRu")
+      .isLength({ max: 100 })
+      .withMessage((_, { req }) => req.t("invalidShortDescriptionRu"))
+      .optional({ nullable: true, checkFalsy: true }),
     passport.authenticate("jwt", { session: false }),
   ],
   async (req: Request, res: Response) => {
@@ -282,7 +302,9 @@ router.put(
         entityType,
         image,
         description,
+        descriptionRu,
         shortDescription,
+        shortDescriptionRu,
         contacts,
         socials,
       } = req.body;
@@ -297,7 +319,9 @@ router.put(
           entityType,
           image,
           description,
+          descriptionRu,
           shortDescription,
+          shortDescriptionRu,
           contacts,
           socials,
         },
