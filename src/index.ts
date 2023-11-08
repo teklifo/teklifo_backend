@@ -13,6 +13,7 @@ import { authRouter } from "./routes/api/auth";
 import { companyRouter } from "./routes/api/companies";
 import { commerceMlRouter } from "./routes/api/commerce_ml";
 import { productRouter } from "./routes/api/products";
+import { seoRouter } from "./routes/api/seo";
 import logger from "./config/logger";
 import { PORT } from "./config/secrets";
 
@@ -50,6 +51,7 @@ const main = async () => {
     app.use("/api/companies", companyRouter);
     app.use("/api/commerce_ml", commerceMlRouter);
     app.use("/api/products", productRouter);
+    app.use("/api/seo", seoRouter);
 
     app.listen(PORT, () => {
       logger.info(`Server started on port ${PORT}`);
